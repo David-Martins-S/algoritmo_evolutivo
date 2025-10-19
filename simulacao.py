@@ -7,6 +7,7 @@ import genetica
 from criatura import Criatura
 from comida import Comida
 from globais import *
+from util import reiniciar_programa
 
 class Simulacao:
     def __init__(self):
@@ -62,6 +63,11 @@ class Simulacao:
             for evento in pygame.event.get():
                 if evento.type == pygame.QUIT:
                     rodando = False
+                if evento.type == pygame.KEYDOWN:
+                    if evento.key == pygame.K_ESCAPE:
+                        pygame.quit()
+                        import sys
+                        reiniciar_programa()
 
             self.tela.fill((20, 20, 20))
 
@@ -97,5 +103,3 @@ class Simulacao:
                 # nova geração com regras de herança
 
                 genetica.nova_geracao(self.criaturas)
-
-        pygame.quit()

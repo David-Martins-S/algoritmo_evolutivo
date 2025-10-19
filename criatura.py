@@ -3,16 +3,13 @@ import random
 import math
 from globais import *
 
-LARGURA, ALTURA = 1600, 1200
-
-
 class Criatura:
 
-    def __init__(self, x, y, visao=None, velocidade=None):
+    def __init__(self, x, y, visao=None, velocidade=None, cor=None):
         self.x = float(x)
         self.y = float(y)
         self.raio = 5
-        self.cor = (0, 100, 255)  # azul
+        self.cor = cor if cor is not None else COR_INICIAL  # azul
         self.visao = visao if visao is not None else random.randint(20, 60)
         self.velocidade = velocidade if velocidade is not None else random.uniform(MINIMO_VELOCIDADE, MAXIMO_VELOCIDADE)
         self.energia = 100.0
@@ -97,12 +94,13 @@ class Criatura:
     def desenhar(self, tela):
         pygame.draw.circle(tela, self.cor, (int(self.x), int(self.y)), self.raio)
         # Desenha o círculo de visão sutil
-        pygame.draw.circle(tela, (125, 125, 255), (int(self.x), int(self.y)), int(self.visao), 1)
+        if CIRCULO_VISAO:
+            pygame.draw.circle(tela, (125, 125, 255), (int(self.x), int(self.y)), int(self.visao), 1)
         # Barra de energia pequena acima
-        barra_larg = 16
-        barra_alt = 3
-        x0 = int(self.x - barra_larg // 2)
-        y0 = int(self.y - self.raio - 8)
-        pygame.draw.rect(tela, (40, 40, 40), (x0, y0, barra_larg, barra_alt))
-        pct = max(0.0, self.energia / 100.0)
-        pygame.draw.rect(tela, (50, 200, 50), (x0, y0, int(barra_larg * pct), barra_alt))
+        #barra_larg = 16
+        #barra_alt = 3
+        #x0 = int(self.x - barra_larg // 2)
+        #y0 = int(self.y - self.raio - 8)
+        #pygame.draw.rect(tela, (40, 40, 40), (x0, y0, barra_larg, barra_alt))
+        #pct = max(0.0, self.energia / 100.0)
+        #pygame.draw.rect(tela, (50, 200, 50), (x0, y0, int(barra_larg * pct), barra_alt))

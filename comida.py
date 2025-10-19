@@ -1,7 +1,8 @@
 import pygame
 import random
+from globais import LARGURA, ALTURA
 
-LARGURA, ALTURA = 800, 600
+
 COR_COMIDA = (80, 255, 80)
 
 class Comida:

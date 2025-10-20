@@ -5,22 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="94f5bfcc-c0ad-4e05-98ac-6bf1ae8c6f88" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/button.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/componentes/botao.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/telas/configuracoes.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/telas/gerenciador.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/telas/menu_inicial.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/telas/simulacao.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ambiente.py" beforeDir="false" afterPath="$PROJECT_DIR$/ambiente.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/comida.py" beforeDir="false" afterPath="$PROJECT_DIR$/comida.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/criatura.py" beforeDir="false" afterPath="$PROJECT_DIR$/criatura.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dados.csv" beforeDir="false" afterPath="$PROJECT_DIR$/dados.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/genetica.py" beforeDir="false" afterPath="$PROJECT_DIR$/genetica.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/globais.py" beforeDir="false" afterPath="$PROJECT_DIR$/globais.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/simulacao.py" beforeDir="false" afterPath="$PROJECT_DIR$/simulacao.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/util.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -48,15 +35,15 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Python.main.executor": "Run",
-    "Python.teste_pygame.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.teste_pygame.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\TCC\evolucao_criaturas\telas\" />

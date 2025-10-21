@@ -8,6 +8,10 @@ from criatura import Criatura
 from comida import Comida
 from globais import *
 from util import reiniciar_programa
+from gerenciador_estados import GerenciadorDeEstado
+from estados_menu import MenuState
+
+estado_global = GerenciadorDeEstado()
 
 class Simulacao:
     def __init__(self):
@@ -57,17 +61,20 @@ class Simulacao:
         self.tela.blit(self.font.render(texto, True, (255, 255, 255)), (10, 10))
 
     def rodar(self):
+
         rodando = True
+
         while rodando:
             self.clock.tick(FPS)
+
             for evento in pygame.event.get():
                 if evento.type == pygame.QUIT:
                     rodando = False
                 if evento.type == pygame.KEYDOWN:
                     if evento.key == pygame.K_ESCAPE:
+                        estado_global.mudar_menu(MenuState.MAIN)
+                        rodando = False
                         pygame.quit()
-                        import sys
-                        reiniciar_programa()
 
             self.tela.fill((20, 20, 20))
 
@@ -103,3 +110,6 @@ class Simulacao:
                 # nova geração com regras de herança
 
                 genetica.nova_geracao(self.criaturas)
+
+            if estado_global.esta_pausado():
+                rodando = False

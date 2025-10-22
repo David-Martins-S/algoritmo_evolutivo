@@ -2,6 +2,7 @@ import random
 from criatura import Criatura
 from globais import *
 
+
 def nova_geracao(geracao_finalizada):
     novas = []
     for c in geracao_finalizada:

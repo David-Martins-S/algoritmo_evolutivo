@@ -1,135 +1,128 @@
 import pygame
 import random
-import csv
 import os
+import csv
 
-import genetica
 from criatura import Criatura
 from comida import Comida
 from globais import *
+from gerenciador_estados import GerenciadorDeEstado
+
+import genetica
+
+
+
+pygame.init()
+FONT = pygame.font.SysFont("Arial", 20)
+BIG_FONT = pygame.font.SysFont("Arial", 48)
+
+estado = GerenciadorDeEstado()
 
 class Simulacao:
-    def __init__(self, gerenciador=None):
-        self.gerenciador = gerenciador
-        pygame.init()
+    def __init__(self):
+        # não chamamos pygame.init() aqui (já feito)
         self.tela = pygame.display.get_surface()
-        pygame.display.set_caption("Evolução - Visão, Velocidade e Reprodução")
+        if self.tela is None:
+            # criar surface caso main não tenha criado
+            self.tela = pygame.display.set_mode((LARGURA, ALTURA))
+        pygame.display.set_caption("Evolução - Simulação")
         self.clock = pygame.time.Clock()
-        self.font = pygame.font.SysFont('Arial', 20)
+        self.font = FONT
 
         self.geracao = 1
         self.passos = 0
 
+        # populações
         self.criaturas = [Criatura(random.uniform(0, LARGURA), random.uniform(0, ALTURA))
                           for _ in range(NUM_CRIATURAS_INICIAL)]
         self.comidas = [Comida() for _ in range(NUM_COMIDAS_INICIAL)]
 
-        self.arquivo_csv = 'dados.csv'
-        if not os.path.isfile(self.arquivo_csv):
-            with open(self.arquivo_csv, 'w', newline='') as f:
+        # CSV
+        if not os.path.isfile(CSV_ARQUIVO):
+            with open(CSV_ARQUIVO, 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(['Geração', 'População', 'Média de Visão', 'Média de Velocidade'])
 
     def salvar_dados(self):
         if not self.criaturas:
             media_visao = 0
-            media_velocidade = 0
+            media_vel = 0
         else:
             media_visao = sum(c.visao for c in self.criaturas) / len(self.criaturas)
-            media_velocidade = sum(c.velocidade for c in self.criaturas) / len(self.criaturas)
-        with open(self.arquivo_csv, 'a', newline='') as f:
+            media_vel = sum(c.velocidade for c in self.criaturas) / len(self.criaturas)
+        with open(CSV_ARQUIVO, 'a', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow([self.geracao, len(self.criaturas), round(media_visao, 2), round(media_velocidade, 2)])
+            writer.writerow([self.geracao, len(self.criaturas), round(media_visao,2), round(media_vel,2)])
 
-        geracao_finalizada = self.criaturas
-        self.criaturas = genetica.nova_geracao(geracao_finalizada)
+    def nova_geracao(self):
+        # tenta usar genetica.nova_geracao; se não existir, faz fallback simples
+        try:
+            novas = genetica.nova_geracao(self.criaturas)
+        except Exception:
+            novas = []
+            for c in self.criaturas:
+                if getattr(c, 'comida_comida', 0) >= 1:
+                    # herança simples: cria 1 filho herdando visao/vel
+                    novas.append(Criatura(random.uniform(0, LARGURA), random.uniform(0, ALTURA)))
+        self.criaturas = novas
         self.comidas = [Comida() for _ in range(NUM_COMIDAS_INICIAL)]
         self.geracao += 1
         self.passos = 0
 
-    def desenhar_estatisticas(self):
-        if self.criaturas:
-            media_visao = sum(c.visao for c in self.criaturas) / len(self.criaturas)
-            media_vel = sum(c.velocidade for c in self.criaturas) / len(self.criaturas)
-        else:
-            media_visao = media_vel = 0
-        texto = f"Geração: {self.geracao} | População: {len(self.criaturas)} | Média visão: {media_visao:.1f} | Média vel: {media_vel:.2f}"
-        self.tela.blit(self.font.render(texto, True, (255, 255, 255)), (10, 10))
+    def handle_event(self, evento):
+        # captura ESC dentro da simulação
+        if evento.type == pygame.KEYDOWN:
+            if evento.key == pygame.K_ESCAPE:
+                print("[Simulação] ESC pressionado — pausando")
+                estado.pausar_jogo()
 
-    def eventos(self, event):
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            raise SystemExit
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            if self.gerenciador:
-                self.gerenciador.mudar_tela("menu")
-
-    def desenhar(self, tela):
-        tela.fill((20, 20, 20))
-
-        # Atualização das criaturas
+    def update(self):
+        # Atualiza criaturas (movimento/comida)
         for c in self.criaturas[:]:
-            alvo = c.encontrar_alvo(self.comidas)
-            c.mover(alvo=alvo)
-            c.comer(self.comidas)
-            if c.energia <= 0:
+            alvo = None
+            # tenta método encontrar_alvo/encontrar_comida compatível com sua Criatura
+            if hasattr(c, 'encontrar_alvo'):
+                alvo = c.encontrar_alvo(self.comidas)
+            c.mover(alvo=alvo) if hasattr(c, 'mover') else None
+            if hasattr(c, 'comer'):
+                c.comer(self.comidas)
+            # remove mortos por energia
+            if hasattr(c, 'energia') and c.energia <= 0:
                 try:
                     self.criaturas.remove(c)
                 except ValueError:
                     pass
-            else:
-                c.desenhar(tela)
 
-        # Desenha comidas
-        for comida in self.comidas:
-            comida.desenhar(tela)
-
-        # Estatísticas
-        self.desenhar_estatisticas()
-
-        pygame.display.flip()
-
-        # Atualiza passo e verifica fim da geração
         self.passos += 1
+        # fim de geração
         if not self.comidas or not self.criaturas or self.passos >= PASSOS_GERACAO:
+            print(f"[Simulação] Fim da geração {self.geracao}")
             self.salvar_dados()
-            print(f"\n=== Fim da geração {self.geracao} ===")
-            for idx, c in enumerate(self.criaturas):
-                print(
-                    f"Criatura #{idx + 1}: comidas={c.comida_comida}, visao={c.visao}, vel={c.velocidade:.2f}, energia={c.energia:.1f}, cor={c.cor}")
+            self.nova_geracao()
 
-            self.criaturas = genetica.nova_geracao(self.criaturas)
-            self.comidas = [Comida() for _ in range(NUM_COMIDAS_INICIAL)]
-            self.passos = 0
-            self.geracao += 1
+    def draw(self, surface):
+        surface.fill((20,20,20))
+        # comida
+        for comida in self.comidas:
+            if hasattr(comida, 'desenhar'):
+                comida.desenhar(surface)
+            else:
+                pygame.draw.circle(surface, (200,200,0), (int(getattr(comida,'x',0)), int(getattr(comida,'y',0))), getattr(comida,'raio',3))
+        # criaturas
+        for c in self.criaturas:
+            if hasattr(c, 'desenhar'):
+                c.desenhar(surface)
+            else:
+                pygame.draw.circle(surface, COR_INICIAL, (int(c.x), int(c.y)), 6)
+        # estatísticas
+        self.desenhar_estatisticas(surface)
 
-    # def atualizar(self):
-    #     self.clock.tick(FPS)
-    #
-    #     self.tela.fill((20, 20, 20))
-    #
-    #     for evento in pygame.event.get():
-    #         if evento.type == pygame.QUIT:
-    #             pygame.quit()
-    #             exit()
-    #
-    #     # Atualiza criaturas
-    #     for c in self.criaturas[:]:
-    #         alvo = c.encontrar_alvo(self.comidas)
-    #         c.mover(alvo=alvo)
-    #         c.comer(self.comidas)
-    #         if c.energia <= 0:
-    #             self.criaturas.remove(c)
-    #         else:
-    #             c.desenhar(self.tela)
-    #
-    #     for comida in self.comidas:
-    #         comida.desenhar(self.tela)
-    #
-    #     self.desenhar_estatisticas()
-    #     pygame.display.flip()
-    #
-    #     self.passos += 1
-    #     if not self.comidas or not self.criaturas or self.passos >= PASSOS_GERACAO:
-    #         self.salvar_dados()
-    #         genetica.nova_geracao(self.criaturas)
+    def desenhar_estatisticas(self, surface):
+        if self.criaturas:
+            media_visao = sum(getattr(c,'visao',0) for c in self.criaturas) / len(self.criaturas)
+            media_vel = sum(getattr(c,'velocidade',getattr(c,'vel',0)) for c in self.criaturas) / len(self.criaturas)
+        else:
+            media_visao = media_vel = 0
+        texto = f"Geração:{self.geracao} População:{len(self.criaturas)} Visão:{media_visao:.1f} Vel:{media_vel:.2f}"
+        surf = self.font.render(texto, True, (255,255,255))
+        surface.blit(surf, (10,10))

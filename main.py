@@ -69,6 +69,11 @@ def main():
                 if evento.key == pygame.K_ESCAPE:
                     print("[Main] ESC pressionado -> pausar")
                     estado.pausar_jogo()
+            if estado.menu_state == MenuState.VIDEO_SETTINGS:
+                # for evento in pygame.event.get(pygame.KEYDOWN):
+                # if evento.type == pygame.KEYDOWN:
+                tela_video.handle_event(evento)
+
 
         # DRAW & UPDATE
         if not estado.esta_pausado():
@@ -107,9 +112,7 @@ def main():
                     estado.mudar_menu(MenuState.MAIN)
 
             elif estado.menu_state == MenuState.VIDEO_SETTINGS:
-                # tela_configuracoes.desenhar(screen)
-                for evento in pygame.event.get(pygame.KEYDOWN):
-                    tela_video.handle_event(evento)
+
                 tela_video.desenhar(screen)
                 if back_button.draw(screen):
                     estado.mudar_menu(MenuState.OPTIONS)

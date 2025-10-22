@@ -1,10 +1,11 @@
 import pygame
 import globais
 from componentes.botao import Botao
+from gerenciador_estados import estado_global
+from estados_menu import MenuState
 
 class TelaConfiguracoes:
-    def __init__(self, gerenciador):
-        self.gerenciador = gerenciador
+    def __init__(self):
         self.fonte = pygame.font.SysFont(None, 36)
         self.configs = {
             "NUM_CRIATURAS_INICIAL": str(globais.NUM_CRIATURAS_INICIAL),
@@ -37,7 +38,8 @@ class TelaConfiguracoes:
         self.gerenciador.mudar_tela("menu")
 
     def cancelar(self):
-        self.gerenciador.mudar_tela("menu")
+        estado_global.mudar_menu(MenuState.OPTIONS)
+
 
     def desenhar(self, tela):
         tela.fill((20, 20, 20))

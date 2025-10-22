@@ -4,6 +4,7 @@ from estados_menu import MenuState
 from gerenciador_estados import GerenciadorDeEstado
 from button import Button
 from telas.simulacao import Simulacao
+from telas.configuracoes_video import TelaConfiguracoesVideo
 
 from globais import *
 from telas.configuracoes import TelaConfiguracoes
@@ -58,6 +59,7 @@ def main():
 
     # Tela de configurações simplificada (apenas desenho)
     tela_configuracoes = TelaConfiguracoes()
+    tela_video = TelaConfiguracoesVideo()
 
     run = True
     while run:
@@ -114,7 +116,10 @@ def main():
                     estado.mudar_menu(MenuState.MAIN)
 
             elif estado.menu_state == MenuState.VIDEO_SETTINGS:
-                tela_configuracoes.desenhar(screen)
+                # tela_configuracoes.desenhar(screen)
+                for evento in pygame.event.get(pygame.KEYDOWN):
+                    tela_video.handle_event(evento)
+                tela_video.desenhar(screen)
                 if back_button.draw(screen):
                     estado.mudar_menu(MenuState.OPTIONS)
 

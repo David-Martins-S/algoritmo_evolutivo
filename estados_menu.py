@@ -8,3 +8,4 @@ class MenuState(Enum):
     AUDIO_SETTINGS = auto()
     KEYS_SETTINGS = auto()
     SIMULACAO = auto()
+    SIMULATION_SETTINGS = auto()

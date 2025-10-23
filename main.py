@@ -6,8 +6,9 @@ from button import Button
 from telas.simulacao import Simulacao
 from telas.configuracoes_video import TelaConfiguracoesVideo
 
-from globais import *
+from globais import LARGURA, ALTURA, FPS
 from telas.configuracoes import TelaConfiguracoes
+from telas.configuracoes_simulacao import TelaConfiguracoesSimulacao
 
 pygame.init()
 FONT = pygame.font.SysFont("Arial", 20)
@@ -17,6 +18,7 @@ BIG_FONT = pygame.font.SysFont("Arial", 48)
 estado = GerenciadorDeEstado()
 # por padrão, começamos em simulação (se preferir menu, set True)
 estado.pausar_jogo()
+tela_config_sim = TelaConfiguracoesSimulacao()
 
 
 def main():
@@ -32,28 +34,18 @@ def main():
             print(f"[AVISO] Falha ao carregar {path}: {e}")
             return None
 
-    resume_img = load_img("images/button_resume.png")
-    options_img = load_img("images/button_options.png")
-    quit_img = load_img("images/button_quit.png")
-    video_img = load_img("images/button_video.png")
-    audio_img = load_img("images/button_audio.png")
-    keys_img = load_img("images/button_keys.png")
-    back_img = load_img("images/button_back.png")
+    # cria botões
+    def make_btn(x, y, txt):
 
-    # cria botões (se a imagem não existir, cria botão textual)
-    def make_btn(x, y, img, txt):
-        if img:
-            return Button(x, y, img, 1)
-        else:
-            return Button(x, y, text=txt, w=220, h=60)
+       return Button(x, y, text=txt, w=220, h=60)
 
-    resume_button = make_btn(LARGURA/2-191/2, ALTURA/3, resume_img, "RESUMIR")
-    options_button = make_btn(LARGURA/2-205/2, ALTURA/2, options_img, "OPÇÕES")
-    quit_button = make_btn(LARGURA/2-128/2, ((ALTURA/3)*2), quit_img, "SAIR")
-    video_button = make_btn(LARGURA/2-347/2, ((ALTURA/6)*2), video_img, "VIDEO")
-    audio_button = make_btn(LARGURA/2-349/2, ((ALTURA/6)*3), audio_img, "AUDIO")
-    keys_button = make_btn(LARGURA/2-308/2, ((ALTURA/6)*4), keys_img, "TECLAS")
-    back_button = make_btn(LARGURA/2-135/2, ((ALTURA/6)*5), back_img, "VOLTAR")
+    resume_button = make_btn(LARGURA/2-110, ALTURA/3, "PLAY")
+    options_button = make_btn(LARGURA/2-110, ALTURA/2, "OPÇÕES")
+    quit_button = make_btn(LARGURA/2-110, ((ALTURA/3)*2), "SAIR")
+    video_button = make_btn(LARGURA/2-110, ((ALTURA/6)*2), "VIDEO")
+    param_button = make_btn(LARGURA/2-110, ((ALTURA/6)*3), "PARÂM. DA SIMULAÇÃO")
+    keys_button = make_btn(LARGURA/2-110, ((ALTURA/6)*4), "TECLAS")
+    back_button = make_btn(LARGURA/2-110, ((ALTURA/6)*5), "VOLTAR")
 
     simulacao = Simulacao()
 
@@ -79,6 +71,11 @@ def main():
                 if evento.key == pygame.K_ESCAPE:
                     print("[Main] ESC pressionado -> pausar")
                     estado.pausar_jogo()
+            if estado.menu_state == MenuState.VIDEO_SETTINGS:
+                tela_video.handle_event(evento)
+            if estado.menu_state == MenuState.SIMULATION_SETTINGS:
+                tela_config_sim.eventos(evento)
+
 
         # DRAW & UPDATE
         if not estado.esta_pausado():
@@ -103,25 +100,27 @@ def main():
                     run = False
 
             elif estado.menu_state == MenuState.OPTIONS:
-                sub = FONT.render("OPÇÕES", True, (255, 255, 255))
-                screen.blit(sub, (100, 80))
+                # title = BIG_FONT.render("MENU PRINCIPAL", True, (255, 255, 255))
+                sub = BIG_FONT.render("OPÇÕES", True, (255, 255, 255))
+                screen.blit(sub, (LARGURA/2-80, 80))
 
                 if video_button.draw(screen):
                     estado.mudar_menu(MenuState.VIDEO_SETTINGS)
-                if audio_button.draw(screen):
-                    estado.mudar_menu(MenuState.AUDIO_SETTINGS)
+                if param_button.draw(screen):
+                    estado.mudar_menu(MenuState.SIMULATION_SETTINGS)
                 if keys_button.draw(screen):
                     estado.mudar_menu(MenuState.KEYS_SETTINGS)
                 if back_button.draw(screen):
                     estado.mudar_menu(MenuState.MAIN)
 
             elif estado.menu_state == MenuState.VIDEO_SETTINGS:
-                # tela_configuracoes.desenhar(screen)
-                for evento in pygame.event.get(pygame.KEYDOWN):
-                    tela_video.handle_event(evento)
+
                 tela_video.desenhar(screen)
                 if back_button.draw(screen):
                     estado.mudar_menu(MenuState.OPTIONS)
+
+            elif estado.menu_state == MenuState.SIMULATION_SETTINGS:
+                tela_config_sim.desenhar(screen)
 
         pygame.display.flip()
         clock.tick(FPS)

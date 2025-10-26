@@ -24,15 +24,15 @@ def nova_geracao(geracao_finalizada, geracao_atual):
 
         filho.autoexploracao = max(0, min(1, parent.autoexploracao + random.uniform(-0.1, 0.1)))
 
-        # Herança e mutação dos pesos comportamentais
-        if hasattr(parent, "pesos"):
-            filho.pesos = {
-                k: max(0.0, v + random.uniform(-0.05, 0.05))
-                for k, v in parent.pesos.items()
-            }
-        else:
-            # fallback (caso alguma criatura antiga não tenha pesos)
-            filho.pesos = {"ir_para_comida": 1.0, "aleatoriedade": 0.2}
+        # # Herança e mutação dos pesos comportamentais
+        # if hasattr(parent, "pesos"):
+        #     filho.pesos = {
+        #         k: max(0.0, v + random.uniform(-0.05, 0.05))
+        #         for k, v in parent.pesos.items()
+        #     }
+        # else:
+        #     # fallback (caso alguma criatura antiga não tenha pesos)
+        #     filho.pesos = {"ir_para_comida": 1.0, "aleatoriedade": 0.2}
 
         return filho
 
@@ -52,7 +52,8 @@ def nova_geracao(geracao_finalizada, geracao_atual):
                      new_generation, nova_idade, sexo)
         # Preserva energia? normalmente resetamos energia para 100 na nova geração
         p.energia = getattr(parent, "energia", 100)
-        p.comida_comida = max(2, getattr(parent, "comida_comida", 0)) - 1
+        comida_anterior = getattr(parent, "comida_comida", 1)
+        p.comida_comida = 1 if comida_anterior > 1 else 0
         return p
 
     for parent in geracao_finalizada:
@@ -71,13 +72,16 @@ def nova_geracao(geracao_finalizada, geracao_atual):
 
             elif eaten >= 2 and detectou:
                 # sobrevive e gera até 3 filhos (dependendo da comida)
-                novas.append(cria_pai_sem_mutacao(parent))
 
                 num_filhos = min(eaten - 1, 3)  # 1 comida = 0 filhos, 2 = 1, 3 = 2, 4+ = 3
                 for _ in range(num_filhos):
                     f = cria_herdeiro(parent)
                     f.comida_comida = 1  # cada filho nasce "alimentado"
                     novas.append(f)
+
+                parent.comida_comida = parent.comida_comida - num_filhos
+                novas.append(cria_pai_sem_mutacao(parent))
+
             else:
                 # não detectou parceiro, apenas sobrevive
                 novas.append(cria_pai_sem_mutacao(parent))

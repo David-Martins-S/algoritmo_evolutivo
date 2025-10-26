@@ -14,29 +14,37 @@ def nova_geracao(geracao_finalizada):
         """Cria um filho a partir de um objeto 'parent' aplicando mutações suaves."""
         # Visão mutada (int)
         nova_visao = int(parent.visao + random.randint(-VARIACAO_VISAO, VARIACAO_VISAO))
-        # nova_visao = max(MINIMO_VISAO, min(MAXIMO_VISAO, nova_visao))
-
         # Velocidade mutada (float)
         nova_vel = parent.velocidade + random.uniform(-VARIACAO_VELOCIDADE, VARIACAO_VELOCIDADE)
-        # nova_vel = max(MINIMO_VELOCIDADE, min(MAXIMO_VELOCIDADE, nova_vel))
-
         # Cor mutada (RGB tuple)
         parent_cor = getattr(parent, "cor", (0, 100, 255))
         nova_cor = tuple(
             max(0, min(255, int(channel + random.randint(-VARIACAO_COR, VARIACAO_COR))))
             for channel in parent_cor
         )
-
         # Geração do filho = geração do pai + 1 (assume que parent.geracao existe)
         parent_generation = getattr(parent, "geracao", 1)
         filho_geracao = parent_generation + 1
 
-        # Cria o objeto - ajuste a assinatura se o seu __init__ for diferente
+        # Cria o objeto
         filho = Criatura(random.uniform(0, LARGURA),
                          random.uniform(0, ALTURA),
                          nova_visao, nova_vel, nova_cor, filho_geracao)
         # Opcional: iniciar com 0 comida (ou 1 se regra pedir)
-        filho.comida_comida = 0
+        # filho.comida_comida = 0
+
+        filho.autoexploracao = max(0, min(1, parent.autoexploracao + random.uniform(-0.1, 0.1)))
+
+        # Herança e mutação dos pesos comportamentais
+        if hasattr(parent, "pesos"):
+            filho.pesos = {
+                k: max(0.0, v + random.uniform(-0.05, 0.05))
+                for k, v in parent.pesos.items()
+            }
+        else:
+            # fallback (caso alguma criatura antiga não tenha pesos)
+            filho.pesos = {"ir_para_comida": 1.0, "aleatoriedade": 0.2}
+
         return filho
 
     def cria_pai_sem_mutacao(parent, inherit_generation_increment=False):
@@ -107,5 +115,10 @@ def nova_geracao(geracao_finalizada):
                                   random.uniform(MINIMO_VELOCIDADE, MAXIMO_VELOCIDADE),
                                   (0, 100, 255),
                                   1))
+
+    media_ir = sum(c.pesos["ir_para_comida"] for c in novas if hasattr(c, "pesos")) / len(novas)
+    media_rand = sum(c.pesos["aleatoriedade"] for c in novas if hasattr(c, "pesos")) / len(novas)
+    print(f"Médias dos pesos → comida: {media_ir:.2f}, aleatoriedade: {media_rand:.2f}")
+
     return novas
 

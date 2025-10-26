@@ -1,6 +1,5 @@
 import pygame
 import random
-import os
 import csv
 
 from criatura import Criatura
@@ -51,7 +50,7 @@ class Simulacao:
             media_vel = sum(c.velocidade for c in self.criaturas) / len(self.criaturas)
         with open(CSV_ARQUIVO, 'a', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow([self.geracao, len(self.criaturas), round(media_visao,2), round(media_vel,2)])
+            writer.writerow([self.geracao, len(self.criaturas), round(media_visao, 2), round(media_vel,2)])
 
     def nova_geracao(self):
         # tenta usar genetica.nova_geracao; se não existir, faz fallback simples
@@ -85,6 +84,11 @@ class Simulacao:
             c.mover(alvo=alvo) if hasattr(c, 'mover') else None
             if hasattr(c, 'comer'):
                 c.comer(self.comidas)
+
+            # Evitar colisões e perceber vizinhos
+            c.evitar_colisoes(self.criaturas)
+            c.vizinhos = c.perceber_vizinhos(self.criaturas)
+
             # remove mortos por energia
             if hasattr(c, 'energia') and c.energia <= 0:
                 try:
@@ -118,11 +122,26 @@ class Simulacao:
 
     def desenhar_estatisticas(self, surface):
         if self.criaturas:
-            media_visao = sum(getattr(c,'visao',0) for c in self.criaturas) / len(self.criaturas)
-            media_vel = sum(getattr(c,'velocidade',getattr(c,'vel',0)) for c in self.criaturas) / len(self.criaturas)
+            media_visao = sum(getattr(c, 'visao', 0) for c in self.criaturas) / len(self.criaturas)
+            media_vel = sum(getattr(c, 'velocidade', getattr(c, 'vel', 0)) for c in self.criaturas) / len(
+                self.criaturas)
+            media_autoexploracao = sum(getattr(c, 'autoexploracao', 0) for c in self.criaturas) / len(self.criaturas)
+            # media_energia = sum(getattr(c, 'energia', 0) for c in self.criaturas) / len(self.criaturas)
         else:
-            media_visao = media_vel = 0
-        anos_se_humanos = self.geracao * 15
-        texto = f"Geração:{self.geracao}, Anos se humanos: {anos_se_humanos} População:{len(self.criaturas)} Visão:{media_visao:.1f} Vel:{media_vel:.2f}"
-        surf = self.font.render(texto, True, (255,255,255))
-        surface.blit(surf, (10,10))
+            # media_visao = media_vel = media_autoexploracao = media_energia = 0
+            media_visao = media_vel = media_autoexploracao = 0
+
+        # anos_se_humanos = self.geracao * 15
+
+        texto = (
+            f"Geração:{self.geracao} | "
+            # f"Anos se humanos:{anos_se_humanos} | "
+            f"População:{len(self.criaturas)} | "
+            f"Visão:{media_visao:.1f} | "
+            f"Vel:{media_vel:.2f} | "
+            f"Aleatoriedade:{media_autoexploracao:.2f} | "
+            # f"Energia:{media_energia:.1f}"
+        )
+
+        surf = self.font.render(texto, True, (255, 255, 255))
+        surface.blit(surf, (10, 10))

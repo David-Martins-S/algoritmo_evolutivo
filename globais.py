@@ -23,8 +23,8 @@ def salvar_config(dados):
 # Carrega e aplica os valores nas globais
 dados = carregar_config()
 
-LARGURA = dados.get("LARGURA", 1280)
-ALTURA = dados.get("ALTURA", 1024)
+LARGURA = dados.get("LARGURA", 800)
+ALTURA = dados.get("ALTURA", 600)
 NUM_COMIDAS_INICIAL = dados.get("NUM_COMIDAS_INICIAL", 60)
 NUM_CRIATURAS_INICIAL = dados.get("NUM_CRIATURAS_INICIAL", 30)
 PASSOS_GERACAO = dados.get("PASSOS_GERACAO", 500)
@@ -37,6 +37,10 @@ VARIACAO_VELOCIDADE = dados.get("VARIACAO_VELOCIDADE", 0.2)
 VARIACAO_VISAO = dados.get("VARIACAO_VISAO", 8)
 VARIACAO_COR = dados.get("VARIACAO_COR", 30)
 COR_INICIAL = tuple(dados.get("COR_INICIAL", [0, 100, 255]))
-CIRCULO_VISAO = dados.get("CIRCULO_VISAO", True)
 CSV_ARQUIVO = dados.get("CSV_ARQUIVO", "dados.csv")
+MOSTRA_BARRA_ENERGIA = False
+MOSTRA_COMIDA_COMIDA = True
+MOSTRA_CIRCULO_VISAO = dados.get("CIRCULO_VISAO", False)
+MOSTRA_LINHA_LIGACAO = True
+MOSTRA_TEXTO_CABECA_CRIATURA = False
 

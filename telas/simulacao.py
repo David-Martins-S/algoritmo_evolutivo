@@ -29,6 +29,8 @@ class Simulacao:
 
         self.geracao = 1
         self.passos = 0
+        self.maior_geracao_atual = 0
+        self.total_filhos_geracao = 0
 
         # populações
         self.criaturas = [Criatura(random.uniform(0, LARGURA), random.uniform(0, ALTURA))
@@ -53,15 +55,7 @@ class Simulacao:
             writer.writerow([self.geracao, len(self.criaturas), round(media_visao, 2), round(media_vel,2)])
 
     def nova_geracao(self):
-        # tenta usar genetica.nova_geracao; se não existir, faz fallback simples
-        try:
-            novas = genetica.nova_geracao(self.criaturas)
-        except Exception:
-            novas = []
-            for c in self.criaturas:
-                if getattr(c, 'comida_comida', 0) >= 1:
-                    # herança simples: cria 1 filho herdando visao/vel
-                    novas.append(Criatura(random.uniform(0, LARGURA), random.uniform(0, ALTURA)))
+        novas = genetica.nova_geracao(self.criaturas, self.geracao)
         self.criaturas = novas
         self.comidas = [Comida() for _ in range(NUM_COMIDAS_INICIAL)]
         self.geracao += 1
@@ -120,28 +114,72 @@ class Simulacao:
         # estatísticas
         self.desenhar_estatisticas(surface)
 
+    # def desenhar_estatisticas(self, surface):
+    #     if self.criaturas:
+    #         # === Estatísticas médias ===
+    #         media_visao = sum(c.visao for c in self.criaturas) / len(self.criaturas)
+    #         media_vel = sum(c.velocidade for c in self.criaturas) / len(self.criaturas)
+    #         media_autoexploracao = sum(getattr(c, "autoexploracao", 0) for c in self.criaturas) / len(self.criaturas)
+    #
+    #         # === Geração mais recente ===
+    #         maior_geracao = max(c.geracao for c in self.criaturas)
+    #         total_filhos_geracao = sum(1 for c in self.criaturas if c.geracao == maior_geracao)
+    #         self.maior_geracao_atual = maior_geracao
+    #         self.total_filhos_geracao = total_filhos_geracao
+    #
+    #     else:
+    #         media_visao = media_vel = media_autoexploracao = 0
+    #         maior_geracao = 0
+    #         total_filhos_geracao = 0
+    #
+    #     # === Texto exibido na tela ===
+    #     texto = (
+    #         f"Geração:{self.geracao} | "
+    #         f"População:{len(self.criaturas)} | "
+    #         f"Visão:{media_visao:.1f} | "
+    #         f"Vel:{media_vel:.2f} | "
+    #         # f"Aleatoriedade:{media_autoexploracao:.2f} | "
+    #         # f"maior geração:{maior_geracao} | "
+    #         f"Filhos:{total_filhos_geracao}"
+    #     )
+    #
+    #     surf = self.font.render(texto, True, (255, 255, 255))
+    #     surface.blit(surf, (10, 10))
+
     def desenhar_estatisticas(self, surface):
         if self.criaturas:
-            media_visao = sum(getattr(c, 'visao', 0) for c in self.criaturas) / len(self.criaturas)
-            media_vel = sum(getattr(c, 'velocidade', getattr(c, 'vel', 0)) for c in self.criaturas) / len(
-                self.criaturas)
-            media_autoexploracao = sum(getattr(c, 'autoexploracao', 0) for c in self.criaturas) / len(self.criaturas)
-            # media_energia = sum(getattr(c, 'energia', 0) for c in self.criaturas) / len(self.criaturas)
+            # === Estatísticas médias ===
+            media_visao = sum(c.visao for c in self.criaturas) / len(self.criaturas)
+            media_vel = sum(c.velocidade for c in self.criaturas) / len(self.criaturas)
+            media_autoexploracao = sum(getattr(c, "autoexploracao", 0) for c in self.criaturas) / len(self.criaturas)
+
+            # === Contagem de sexos ===
+            total_machos = sum(1 for c in self.criaturas if c.sexo == 'M')
+            total_femeas = sum(1 for c in self.criaturas if c.sexo == 'F')
+
+            # === Geração mais recente ===
+            maior_geracao = max(c.geracao for c in self.criaturas)
+            total_filhos_geracao = sum(1 for c in self.criaturas if c.geracao == maior_geracao)
+            self.maior_geracao_atual = maior_geracao
+            self.total_filhos_geracao = total_filhos_geracao
+
         else:
-            # media_visao = media_vel = media_autoexploracao = media_energia = 0
             media_visao = media_vel = media_autoexploracao = 0
+            maior_geracao = 0
+            total_filhos_geracao = 0
+            total_machos = total_femeas = 0
 
-        # anos_se_humanos = self.geracao * 15
-
+        # === Texto exibido na tela ===
         texto = (
             f"Geração:{self.geracao} | "
-            # f"Anos se humanos:{anos_se_humanos} | "
-            f"População:{len(self.criaturas)} | "
+            f"População:{len(self.criaturas)} "
+            f"(M:{total_machos} / F:{total_femeas}) | "
             f"Visão:{media_visao:.1f} | "
             f"Vel:{media_vel:.2f} | "
-            f"Aleatoriedade:{media_autoexploracao:.2f} | "
-            # f"Energia:{media_energia:.1f}"
+            f"Filhos:{total_filhos_geracao}"
         )
 
         surf = self.font.render(texto, True, (255, 255, 255))
         surface.blit(surf, (10, 10))
+
+

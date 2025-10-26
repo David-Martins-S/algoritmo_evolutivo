@@ -3,13 +3,19 @@ import random
 import math
 from globais import *
 
+
 class Criatura:
 
-    def __init__(self, x, y, visao=None, velocidade=None, cor=None, geracao=None, idade=None):
+    def __init__(self, x, y, visao=None, velocidade=None, cor=None, geracao=None, idade=None, sexo=None):
         self.x = float(x)
         self.y = float(y)
+        self.sexo = sexo if sexo is not None else random.choice(['M', 'F'])
         self.raio = 5
-        self.cor = cor if cor is not None else COR_INICIAL  # azul
+        # self.cor = cor if cor is not None else COR_INICIAL  # azul
+        if cor is None:
+            self.cor = (0, 100, 255) if self.sexo == 'M' else (255, 192, 203)
+        else:
+            self.cor = cor
         self.visao = visao if visao is not None else random.randint(MINIMO_VISAO, MAXIMO_VISAO)
         self.velocidade = velocidade if velocidade is not None else random.uniform(MINIMO_VELOCIDADE, MAXIMO_VELOCIDADE)
         self.energia = 100.0
@@ -17,6 +23,7 @@ class Criatura:
         self.geracao = geracao if geracao is not None else 1
         self.idade = idade if idade is not None else 15
         self.autoexploracao = random.uniform(0.0, 1.0)  # 0 = totalmente focado, 1 = muito aleatório
+        self.detectou_parceiro = False
 
         # Direção persistente (ângulo em radianos)
         self.direcao = random.uniform(0, 2 * math.pi)
@@ -85,7 +92,7 @@ class Criatura:
                 continue
             dist = math.dist((self.x, self.y), (outra.x, outra.y))
             soma_raios = self.raio + outra.raio
-            if dist < soma_raios and dist > 0:  # colisão detectada
+            if 0 < dist < soma_raios:  # colisão detectada
                 # Calcula direção de separação
                 dx = (self.x - outra.x) / dist
                 dy = (self.y - outra.y) / dist
@@ -97,15 +104,56 @@ class Criatura:
                 outra.x -= dx * overlap / 2
                 outra.y -= dy * overlap / 2
 
+    # def perceber_vizinhos(self, criaturas):
+    #     """Retorna lista de criaturas próximas e define se detectou parceiro reprodutivo."""
+    #     vizinhos = []
+    #
+    #     for outra in criaturas:
+    #         if outra is self:
+    #             continue
+    #         dist = math.dist((self.x, self.y), (outra.x, outra.y))
+    #         if dist <= self.visao:
+    #             vizinhos.append(outra)
+    #
+    #             # condição mínima de percepção reprodutiva
+    #             if (self.sexo == 'F' and outra.sexo == 'M') or (self.sexo == 'M' and outra.sexo == 'F'):
+    #                 if self.comida_comida >= 1 and outra.comida_comida >= 1:
+    #                     self.detectou_parceiro = True  # não reseta mais, só ativa
+    #
+    #     return vizinhos
+
     def perceber_vizinhos(self, criaturas):
-        """Retorna lista de criaturas dentro do campo de visão."""
+        """Retorna lista de criaturas próximas e define se detectou parceiro reprodutivo."""
         vizinhos = []
+
+        # inicializa o controle de parceiras, se ainda não existir
+        if not hasattr(self, "parceiras_recentes"):
+            self.parceiras_recentes = set()
+
         for outra in criaturas:
             if outra is self:
                 continue
+
             dist = math.dist((self.x, self.y), (outra.x, outra.y))
             if dist <= self.visao:
                 vizinhos.append(outra)
+
+                # condição mínima de percepção reprodutiva
+                if (self.sexo == 'M' and outra.sexo == 'F') and self.comida_comida >= 1 and outra.comida_comida >= 1:
+                    # verifica se já interagiu com essa fêmea
+                    if id(outra) not in self.parceiras_recentes:
+                        # decide se vai gastar energia ou não
+                        if self.comida_comida > 1 or random.random() < 0.5:
+                            self.comida_comida -= 1
+                            outra.detectou_parceiro = True
+                            self.parceiras_recentes.add(id(outra))
+                        # caso contrário, ele decide não gastar energia agora
+                        else:
+                            self.parceiras_recentes.add(id(outra))
+                elif (self.sexo == 'F' and outra.sexo == 'M'):
+                    # Fêmeas apenas aguardam machos decidirem
+                    pass
+
         return vizinhos
 
     def desenhar(self, tela):
@@ -127,12 +175,11 @@ class Criatura:
         # === Exibir número da geração ===
         if MOSTRA_TEXTO_CABECA_CRIATURA:
             font = pygame.font.SysFont('Arial', 12)
-            # texto = font.render(f"G{self.geracao},I{self.idade}", True, (255, 255, 0))
-            texto = font.render(f"{self.idade}", True, (255, 255, 0))
-            texto_rect = texto.get_rect(center=(int(self.x), y0 - 8))
+            texto = font.render(f"{self.geracao}", True, (255, 255, 0))
+            texto_rect = texto.get_rect(center=(int(self.x), int(self.y - self.raio - 16)))
             tela.blit(texto, texto_rect)
 
-            # --- NOVO: desenhar pontos de comida abaixo ---
+        # --- desenhar pontos de comida abaixo ---
         if MOSTRA_COMIDA_COMIDA:
             n = getattr(self, "comida_comida", 0)
             if n > 0:
@@ -158,3 +205,7 @@ class Criatura:
                 for v in self.vizinhos:
                     pygame.draw.line(tela, (100, 100, 255), (int(self.x), int(self.y)), (int(v.x), int(v.y)), 1)
 
+        # indicador de parceiro detectado
+        if MOSTRA_GRAVIDEZ:
+            if getattr(self, "detectou_parceiro", False) and getattr(self, "sexo") == 'F':
+                pygame.draw.circle(tela, (255, 255, 0), (int(self.x), int(self.y)), self.raio + 3, 1)

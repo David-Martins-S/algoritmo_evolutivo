@@ -1,4 +1,5 @@
 import pygame
+import numpy as np
 import sys
 from estados_menu import MenuState
 from gerenciador_estados import GerenciadorDeEstado
@@ -6,11 +7,24 @@ from button import Button
 from telas.simulacao import Simulacao
 from telas.configuracoes_video import TelaConfiguracoesVideo
 
+
 from globais import LARGURA, ALTURA, FPS
 from telas.configuracoes import TelaConfiguracoes
 from telas.configuracoes_simulacao import TelaConfiguracoesSimulacao
 
 pygame.init()
+
+# pygame.mixer.init(frequency=44100, size=-16, channels=1)
+
+pygame.mixer.init()
+pygame.mixer.set_num_channels(16)
+
+som_pop = pygame.mixer.Sound("assets/sounds/pop2.mp3")
+som_vush = pygame.mixer.Sound("assets/sounds/vush.mp3")
+som_pop.set_volume(0.3)  # volume de 0.0 a 1.0
+som_vush.set_volume(0.5)  # volume de 0.0 a 1.0
+
+
 FONT = pygame.font.SysFont("Arial", 20)
 BIG_FONT = pygame.font.SysFont("Arial", 48)
 
@@ -48,6 +62,8 @@ def main():
     back_button = make_btn(LARGURA/2-110, ((ALTURA/6)*5), "VOLTAR")
 
     simulacao = Simulacao()
+    simulacao.som_pop = som_pop
+    simulacao.som_vush = som_vush
 
     # Tela de configurações simplificada (apenas desenho)
     tela_configuracoes = TelaConfiguracoes()

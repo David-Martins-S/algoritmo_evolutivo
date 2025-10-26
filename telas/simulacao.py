@@ -77,11 +77,24 @@ class Simulacao:
                 alvo = c.encontrar_alvo(self.comidas)
             c.mover(alvo=alvo) if hasattr(c, 'mover') else None
             if hasattr(c, 'comer'):
+
+                comida_antes = c.comida_comida
+                c.comer(self.comidas)
+                if LIGA_SOM_COMER:
+                    if c.comida_comida > comida_antes:
+                        if hasattr(self, "som_pop"):
+                            self.som_pop.play()
+
                 c.comer(self.comidas)
 
             # Evitar colisões e perceber vizinhos
             c.evitar_colisoes(self.criaturas)
+            estava_gravida = c.detectou_parceiro
             c.vizinhos = c.perceber_vizinhos(self.criaturas)
+            if LIGA_SOM_VUSH:
+                if c.detectou_parceiro != estava_gravida:
+                    if hasattr(self, "som_vush"):
+                            self.som_vush.play()
 
             # remove mortos por energia
             if hasattr(c, 'energia') and c.energia <= 0:

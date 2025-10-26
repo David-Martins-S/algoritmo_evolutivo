@@ -104,23 +104,6 @@ class Criatura:
                 outra.x -= dx * overlap / 2
                 outra.y -= dy * overlap / 2
 
-    # def perceber_vizinhos(self, criaturas):
-    #     """Retorna lista de criaturas próximas e define se detectou parceiro reprodutivo."""
-    #     vizinhos = []
-    #
-    #     for outra in criaturas:
-    #         if outra is self:
-    #             continue
-    #         dist = math.dist((self.x, self.y), (outra.x, outra.y))
-    #         if dist <= self.visao:
-    #             vizinhos.append(outra)
-    #
-    #             # condição mínima de percepção reprodutiva
-    #             if (self.sexo == 'F' and outra.sexo == 'M') or (self.sexo == 'M' and outra.sexo == 'F'):
-    #                 if self.comida_comida >= 1 and outra.comida_comida >= 1:
-    #                     self.detectou_parceiro = True  # não reseta mais, só ativa
-    #
-    #     return vizinhos
 
     def perceber_vizinhos(self, criaturas):
         """Retorna lista de criaturas próximas e define se detectou parceiro reprodutivo."""
@@ -145,6 +128,7 @@ class Criatura:
                         # decide se vai gastar energia ou não
                         if self.comida_comida > 1 or random.random() < 0.5:
                             self.comida_comida -= 1
+                            self.detectou_parceiro = True
                             outra.detectou_parceiro = True
                             self.parceiras_recentes.add(id(outra))
                         # caso contrário, ele decide não gastar energia agora

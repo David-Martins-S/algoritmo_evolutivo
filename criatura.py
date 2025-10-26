@@ -5,7 +5,7 @@ from globais import *
 
 class Criatura:
 
-    def __init__(self, x, y, visao=None, velocidade=None, cor=None):
+    def __init__(self, x, y, visao=None, velocidade=None, cor=None, geracao=None, idade=None):
         self.x = float(x)
         self.y = float(y)
         self.raio = 5
@@ -14,6 +14,8 @@ class Criatura:
         self.velocidade = velocidade if velocidade is not None else random.uniform(MINIMO_VELOCIDADE, MAXIMO_VELOCIDADE)
         self.energia = 100.0
         self.comida_comida = 0
+        self.geracao = geracao if geracao is not None else 1
+        self.idade = idade if idade is not None else 15
 
         # Direção persistente (ângulo em radianos)
         self.direcao = random.uniform(0, 2 * math.pi)
@@ -97,10 +99,46 @@ class Criatura:
         if CIRCULO_VISAO:
             pygame.draw.circle(tela, (125, 125, 255), (int(self.x), int(self.y)), int(self.visao), 1)
         # Barra de energia pequena acima
-        #barra_larg = 16
-        #barra_alt = 3
-        #x0 = int(self.x - barra_larg // 2)
-        #y0 = int(self.y - self.raio - 8)
-        #pygame.draw.rect(tela, (40, 40, 40), (x0, y0, barra_larg, barra_alt))
-        #pct = max(0.0, self.energia / 100.0)
-        #pygame.draw.rect(tela, (50, 200, 50), (x0, y0, int(barra_larg * pct), barra_alt))
+        barra_larg = 16
+        barra_alt = 3
+        x0 = int(self.x - barra_larg // 2)
+        y0 = int(self.y - self.raio - 8)
+        pygame.draw.rect(tela, (40, 40, 40), (x0, y0, barra_larg, barra_alt))
+        pct = max(0.0, self.energia / 100.0)
+        pygame.draw.rect(tela, (50, 200, 50), (x0, y0, int(barra_larg * pct), barra_alt))
+
+        # === Exibir número da geração ===
+        font = pygame.font.SysFont('Arial', 12)
+        # texto = font.render(f"G{self.geracao},I{self.idade}", True, (255, 255, 0))
+        texto = font.render(f"{self.idade}", True, (255, 255, 0))
+        texto_rect = texto.get_rect(center=(int(self.x), y0 - 8))
+        tela.blit(texto, texto_rect)
+
+        # # --- novo: pontinho verde + número de comida abaixo da criatura ---
+        # # pequeno ponto verde logo abaixo
+        # pygame.draw.circle(tela, (0, 255, 0), (int(self.x), int(self.y + self.raio + 4)), 2)
+        #
+        # # número de comida (em branco, tamanho pequeno)
+        # if hasattr(self, "comida_comida"):
+        #     font = pygame.font.SysFont(None, 14)
+        #     texto = font.render(str(self.comida_comida), True, (255, 255, 255))
+        #     tela.blit(texto, (self.x - texto.get_width() // 2, self.y + self.raio + 6))
+
+        # --- NOVO: desenhar pontos de comida abaixo ---
+        n = getattr(self, "comida_comida", 0)
+        if n > 0:
+            espacamento = 5
+            base_y = int(self.y + self.raio + 5)
+            total_pontos = min(n, 3)
+            total_largura = (total_pontos - 1) * espacamento
+
+            # desenha 1 a 4 pontos
+            for i in range(total_pontos):
+                x_ponto = int(self.x - total_largura // 2 + i * espacamento)
+                pygame.draw.circle(tela, (0, 255, 0), (x_ponto, base_y), 2)
+
+            # adiciona um "+" se tiver mais que 4 comidas
+            if n > 3:
+                font = pygame.font.SysFont(None, 14)
+                texto = font.render("+", True, (0, 255, 0))
+                tela.blit(texto, (self.x + total_largura // 2 + 4, base_y - texto.get_height() // 2))

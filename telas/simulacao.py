@@ -11,16 +11,15 @@ from gerenciador_estados import GerenciadorDeEstado
 import genetica
 
 
-
 pygame.init()
 FONT = pygame.font.SysFont("Arial", 20)
 BIG_FONT = pygame.font.SysFont("Arial", 48)
 
 estado = GerenciadorDeEstado()
 
+
 class Simulacao:
     def __init__(self):
-        # não chamamos pygame.init() aqui (já feito)
         self.tela = pygame.display.get_surface()
         if self.tela is None:
             # criar surface caso main não tenha criado
@@ -123,6 +122,7 @@ class Simulacao:
             media_vel = sum(getattr(c,'velocidade',getattr(c,'vel',0)) for c in self.criaturas) / len(self.criaturas)
         else:
             media_visao = media_vel = 0
-        texto = f"Geração:{self.geracao} População:{len(self.criaturas)} Visão:{media_visao:.1f} Vel:{media_vel:.2f}"
+        anos_se_humanos = self.geracao * 15
+        texto = f"Geração:{self.geracao}, Anos se humanos: {anos_se_humanos} População:{len(self.criaturas)} Visão:{media_visao:.1f} Vel:{media_vel:.2f}"
         surf = self.font.render(texto, True, (255,255,255))
         surface.blit(surf, (10,10))

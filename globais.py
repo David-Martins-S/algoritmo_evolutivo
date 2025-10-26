@@ -23,8 +23,8 @@ def salvar_config(dados):
 # Carrega e aplica os valores nas globais
 dados = carregar_config()
 
-LARGURA = dados.get("LARGURA", 1920)
-ALTURA = dados.get("ALTURA", 1080)
+LARGURA = dados.get("LARGURA", 1280)
+ALTURA = dados.get("ALTURA", 1024)
 NUM_COMIDAS_INICIAL = dados.get("NUM_COMIDAS_INICIAL", 60)
 NUM_CRIATURAS_INICIAL = dados.get("NUM_CRIATURAS_INICIAL", 30)
 PASSOS_GERACAO = dados.get("PASSOS_GERACAO", 500)

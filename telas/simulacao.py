@@ -164,11 +164,14 @@ class Simulacao:
             # === Estatísticas médias ===
             media_visao = sum(c.visao for c in self.criaturas) / len(self.criaturas)
             media_vel = sum(c.velocidade for c in self.criaturas) / len(self.criaturas)
+
             media_autoexploracao = sum(getattr(c, "autoexploracao", 0) for c in self.criaturas) / len(self.criaturas)
 
             # === Contagem de sexos ===
             total_machos = sum(1 for c in self.criaturas if c.sexo == 'M')
             total_femeas = sum(1 for c in self.criaturas if c.sexo == 'F')
+
+            media_risco = sum(c.risco for c in self.criaturas if c.sexo == 'M') / total_machos
 
             # === Geração mais recente ===
             maior_geracao = max(c.geracao for c in self.criaturas)
@@ -177,7 +180,7 @@ class Simulacao:
             self.total_filhos_geracao = total_filhos_geracao
 
         else:
-            media_visao = media_vel = media_autoexploracao = 0
+            media_visao = media_vel = media_autoexploracao = media_risco = 0
             maior_geracao = 0
             total_filhos_geracao = 0
             total_machos = total_femeas = 0
@@ -189,7 +192,8 @@ class Simulacao:
             f"(M:{total_machos} / F:{total_femeas}) | "
             f"Visão:{media_visao:.1f} | "
             f"Vel:{media_vel:.2f} | "
-            f"Filhos:{total_filhos_geracao}"
+            f"Filhos:{total_filhos_geracao} | "
+            f"Risco médio:{media_risco:.2f}"
         )
 
         surf = self.font.render(texto, True, (255, 255, 255))

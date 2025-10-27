@@ -6,7 +6,7 @@ from globais import *
 
 class Criatura:
 
-    def __init__(self, x, y, visao=None, velocidade=None, cor=None, geracao=None, idade=None, sexo=None):
+    def __init__(self, x, y, visao=None, velocidade=None, cor=None, geracao=None, idade=None, sexo=None, risco=None):
         self.x = float(x)
         self.y = float(y)
         self.sexo = sexo if sexo is not None else random.choice(['M', 'F'])
@@ -17,6 +17,7 @@ class Criatura:
         else:
             self.cor = cor
         self.visao = visao if visao is not None else random.randint(MINIMO_VISAO, MAXIMO_VISAO)
+        self.risco = risco if risco is not None else random.uniform(MINIMO_RISCO, MAXIMO_RISCO)
         self.velocidade = velocidade if velocidade is not None else random.uniform(MINIMO_VELOCIDADE, MAXIMO_VELOCIDADE)
         self.energia = 100.0
         self.comida_comida = 0
@@ -104,7 +105,6 @@ class Criatura:
                 outra.x -= dx * overlap / 2
                 outra.y -= dy * overlap / 2
 
-
     def perceber_vizinhos(self, criaturas):
         """Retorna lista de criaturas próximas e define se detectou parceiro reprodutivo."""
         vizinhos = []
@@ -124,17 +124,19 @@ class Criatura:
                 # condição mínima de percepção reprodutiva
                 if (self.sexo == 'M' and outra.sexo == 'F') and self.comida_comida >= 1 and outra.comida_comida >= 1:
                     # verifica se já interagiu com essa fêmea
-                    if id(outra) not in self.parceiras_recentes:
+                    if id(outra) not in self.parceiras_recentes and not outra.detectou_parceiro:
                         # decide se vai gastar energia ou não
-                        if self.comida_comida > 1 or random.random() < 0.5:
+                        if self.comida_comida > 1 or random.random() < self.risco:
                             self.comida_comida -= 1
                             self.detectou_parceiro = True
                             outra.detectou_parceiro = True
+                            # passa para a mãe o gene de risco do pai
+                            outra.risco = self.risco
                             self.parceiras_recentes.add(id(outra))
                         # caso contrário, ele decide não gastar energia agora
                         else:
                             self.parceiras_recentes.add(id(outra))
-                elif (self.sexo == 'F' and outra.sexo == 'M'):
+                elif self.sexo == 'F' and outra.sexo == 'M':
                     # Fêmeas apenas aguardam machos decidirem
                     pass
 

@@ -2,7 +2,8 @@ import random
 from globais import (LARGURA, ALTURA,
                      MINIMO_VISAO, MAXIMO_VISAO,
                      MINIMO_VELOCIDADE, MAXIMO_VELOCIDADE,
-                     VARIACAO_VISAO, VARIACAO_VELOCIDADE
+                     VARIACAO_VISAO, VARIACAO_VELOCIDADE,
+                     VARIACAO_RISCO
                      )
 from criatura import Criatura
 
@@ -16,11 +17,16 @@ def nova_geracao(geracao_finalizada, geracao_atual):
         nova_vel = parent.velocidade + random.uniform(-VARIACAO_VELOCIDADE, VARIACAO_VELOCIDADE)
         parent_generation = getattr(parent, "geracao", 1)
         filho_geracao = geracao_atual + 1
+        novo_risco = parent.risco + random.uniform(-VARIACAO_RISCO, VARIACAO_RISCO)
+        if novo_risco < 0:
+            novo_risco = 0
+        elif novo_risco > 1:
+            novo_risco = 1
 
         # Cria o objeto
         filho = Criatura(random.uniform(0, LARGURA),
                          random.uniform(0, ALTURA),
-                         nova_visao, nova_vel, None, filho_geracao)
+                         visao=nova_visao, velocidade=nova_vel, cor=None, geracao=filho_geracao, risco=novo_risco)
 
         filho.autoexploracao = max(0, min(1, parent.autoexploracao + random.uniform(-0.1, 0.1)))
 
@@ -43,13 +49,14 @@ def nova_geracao(geracao_finalizada, geracao_atual):
         parent_idade = getattr(parent, "idade")
         nova_idade = parent_idade + 15
         sexo = getattr(parent, "sexo")
+        risco = getattr(parent, "risco")
 
         p = Criatura(random.uniform(0, LARGURA),
                      random.uniform(0, ALTURA),
                      int(parent.visao),
                      float(parent.velocidade),
                      getattr(parent, "cor", (0, 100, 255)),
-                     new_generation, nova_idade, sexo)
+                     new_generation, nova_idade, sexo, risco)
         # Preserva energia? normalmente resetamos energia para 100 na nova geração
         p.energia = getattr(parent, "energia", 100)
         comida_anterior = getattr(parent, "comida_comida", 1)
@@ -79,7 +86,7 @@ def nova_geracao(geracao_finalizada, geracao_atual):
                     f.comida_comida = 1  # cada filho nasce "alimentado"
                     novas.append(f)
 
-                parent.comida_comida = parent.comida_comida - num_filhos
+                parent.comida_comida = 1
                 novas.append(cria_pai_sem_mutacao(parent))
 
             else:

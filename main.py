@@ -39,7 +39,7 @@ def main():
 
        return Button(x, y, text=txt, w=220, h=60)
 
-    resume_button = make_btn(LARGURA/2-110, ALTURA/3, "PLAY")
+    resume_button = make_btn(LARGURA/2-110, ALTURA/3, "INICIAR")
     options_button = make_btn(LARGURA/2-110, ALTURA/2, "OPÇÕES")
     quit_button = make_btn(LARGURA/2-110, ((ALTURA/3)*2), "SAIR")
     video_button = make_btn(LARGURA/2-110, ((ALTURA/6)*2), "VIDEO")

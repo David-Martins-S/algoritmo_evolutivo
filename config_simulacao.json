@@ -1,7 +1,7 @@
 {
     "CAMINHO_CONFIG": "config_simulacao.json",
-    "LARGURA": 800,
-    "ALTURA": 600,
+    "LARGURA": 1920,
+    "ALTURA": 1080,
     "NUM_COMIDAS_INICIAL": 60,
     "NUM_CRIATURAS_INICIAL": 30,
     "PASSOS_GERACAO": 1000,

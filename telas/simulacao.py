@@ -2,10 +2,10 @@ import pygame
 import random
 import csv
 import os
+import globais
 
 from criatura import Criatura
 from comida import Comida
-from globais import *
 from gerenciador_estados import GerenciadorDeEstado
 
 import genetica
@@ -14,6 +14,7 @@ pygame.init()
 FONT = pygame.font.Font(None, 20)
 BIG_FONT = pygame.font.Font(None, 48)
 
+
 estado = GerenciadorDeEstado()
 
 class Simulacao:
@@ -21,7 +22,7 @@ class Simulacao:
         self.tela = pygame.display.get_surface()
         if self.tela is None:
             # criar surface caso main não tenha criado
-            self.tela = pygame.display.set_mode((LARGURA, ALTURA))
+            self.tela = pygame.display.set_mode((globais.LARGURA, globais.ALTURA))
         pygame.display.set_caption("Evolução - Simulação")
         self.clock = pygame.time.Clock()
         self.font = FONT
@@ -32,13 +33,13 @@ class Simulacao:
         self.total_filhos_geracao = 0
 
         # populações
-        self.criaturas = [Criatura(random.uniform(0, LARGURA), random.uniform(0, ALTURA))
-                          for _ in range(NUM_CRIATURAS_INICIAL)]
-        self.comidas = [Comida() for _ in range(NUM_COMIDAS_INICIAL)]
+        self.criaturas = [Criatura(random.uniform(0, globais.LARGURA), random.uniform(0, globais.ALTURA))
+                          for _ in range(globais.NUM_CRIATURAS_INICIAL)]
+        self.comidas = [Comida() for _ in range(globais.NUM_COMIDAS_INICIAL)]
 
         # CSV
-        if not os.path.isfile(CSV_ARQUIVO):
-            with open(CSV_ARQUIVO, 'w', newline='') as f:
+        if not os.path.isfile(globais.CSV_ARQUIVO):
+            with open(globais.CSV_ARQUIVO, 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(['Geração', 'População', 'Média de Visão', 'Média de Velocidade'])
 
@@ -49,14 +50,14 @@ class Simulacao:
         else:
             media_visao = sum(c.visao for c in self.criaturas) / len(self.criaturas)
             media_vel = sum(c.velocidade for c in self.criaturas) / len(self.criaturas)
-        with open(CSV_ARQUIVO, 'a', newline='') as f:
+        with open(globais.CSV_ARQUIVO, 'a', newline='') as f:
             writer = csv.writer(f)
             writer.writerow([self.geracao, len(self.criaturas), round(media_visao, 2), round(media_vel,2)])
 
     def nova_geracao(self):
         novas = genetica.nova_geracao(self.criaturas, self.geracao)
         self.criaturas = novas
-        self.comidas = [Comida() for _ in range(NUM_COMIDAS_INICIAL)]
+        self.comidas = [Comida() for _ in range(globais.NUM_COMIDAS_INICIAL)]
         self.geracao += 1
         self.passos = 0
 
@@ -71,9 +72,9 @@ class Simulacao:
 
     def reiniciar_simulacao(self):
         def reiniciar_simulacao(self):
-            self.criaturas = [Criatura(random.uniform(0, LARGURA), random.uniform(0, ALTURA))
-                              for _ in range(NUM_CRIATURAS_INICIAL)]
-            self.comidas = [Comida() for _ in range(NUM_COMIDAS_INICIAL)]
+            self.criaturas = [Criatura(random.uniform(0, globais.LARGURA), random.uniform(0, globais.ALTURA))
+                              for _ in range(globais.NUM_CRIATURAS_INICIAL)]
+            self.comidas = [Comida() for _ in range(globais.NUM_COMIDAS_INICIAL)]
             self.geracao = 1
             self.passos = 0
             self.estado = ""
@@ -92,7 +93,7 @@ class Simulacao:
 
                 comida_antes = c.comida_comida
                 c.comer(self.comidas)
-                if LIGA_SOM_COMER:
+                if globais.LIGA_SOM_COMER:
                     if c.comida_comida > comida_antes:
                         if hasattr(self, "som_pop"):
                             self.som_pop.play()
@@ -102,7 +103,7 @@ class Simulacao:
             c.evitar_colisoes(self.criaturas)
             estava_gravida = c.detectou_parceiro
             c.vizinhos = c.perceber_vizinhos(self.criaturas)
-            if LIGA_SOM_VUSH:
+            if globais.LIGA_SOM_VUSH:
                 if c.detectou_parceiro != estava_gravida:
                     if hasattr(self, "som_vush"):
                             self.som_vush.play()
@@ -116,7 +117,7 @@ class Simulacao:
 
         self.passos += 1
         # fim de geração
-        if not self.comidas or not self.criaturas or self.passos >= PASSOS_GERACAO:
+        if not self.comidas or not self.criaturas or self.passos >= globais.PASSOS_GERACAO:
             print(f"[Simulação] Fim da geração {self.geracao}")
             self.salvar_dados()
             self.nova_geracao()
@@ -140,7 +141,7 @@ class Simulacao:
             if hasattr(c, 'desenhar'):
                 c.desenhar(surface)
             else:
-                pygame.draw.circle(surface, COR_INICIAL, (int(c.x), int(c.y)), 6)
+                pygame.draw.circle(surface, (100, 100, 255), (int(c.x), int(c.y)), 6)
 
         # estatísticas
         self.desenhar_estatisticas(surface)

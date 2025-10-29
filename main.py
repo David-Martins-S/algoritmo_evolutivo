@@ -7,8 +7,9 @@ from button import Button
 from telas.simulacao import Simulacao
 from telas.configuracoes_video import TelaConfiguracoesVideo
 
+import globais
 
-from globais import LARGURA, ALTURA, FPS
+# from globals import LARGURA, ALTURA, FPS
 from telas.configuracoes import TelaConfiguracoes
 from telas.configuracoes_simulacao import TelaConfiguracoesSimulacao
 
@@ -36,7 +37,7 @@ tela_config_sim = TelaConfiguracoesSimulacao()
 
 
 def main():
-    screen = pygame.display.set_mode((LARGURA, ALTURA))
+    screen = pygame.display.set_mode((globais.LARGURA, globais.ALTURA))
     pygame.display.set_caption("Simulação Evolutiva - Arquivão")
     clock = pygame.time.Clock()
 
@@ -53,13 +54,13 @@ def main():
 
        return Button(x, y, text=txt, w=220, h=60)
 
-    resume_button = make_btn(LARGURA/2-110, ALTURA/3, "INICIAR")
-    options_button = make_btn(LARGURA/2-110, ALTURA/2, "OPÇÕES")
-    quit_button = make_btn(LARGURA/2-110, ((ALTURA/3)*2), "SAIR")
-    video_button = make_btn(LARGURA/2-110, ((ALTURA/6)*2), "VIDEO")
-    param_button = make_btn(LARGURA/2-110, ((ALTURA/6)*3), "PARÂM. DA SIMULAÇÃO")
-    keys_button = make_btn(LARGURA/2-110, ((ALTURA/6)*4), "TECLAS")
-    back_button = make_btn(LARGURA/2-110, ((ALTURA/6)*5), "VOLTAR")
+    resume_button = make_btn(globais.LARGURA/2-110, globais.ALTURA/3, "INICIAR")
+    options_button = make_btn(globais.LARGURA/2-110, globais.ALTURA/2, "OPÇÕES")
+    quit_button = make_btn(globais.LARGURA/2-110, ((globais.ALTURA/3)*2), "SAIR")
+    video_button = make_btn(globais.LARGURA/2-110, ((globais.ALTURA/6)*2), "VIDEO")
+    param_button = make_btn(globais.LARGURA/2-110, ((globais.ALTURA/6)*3), "PARÂM. DA SIMULAÇÃO")
+    keys_button = make_btn(globais.LARGURA/2-110, ((globais.ALTURA/6)*4), "TECLAS")
+    back_button = make_btn(globais.LARGURA/2-110, ((globais.ALTURA/6)*5), "VOLTAR")
 
     simulacao = Simulacao()
     simulacao.som_pop = som_pop
@@ -103,7 +104,7 @@ def main():
             screen.fill((52, 78, 91))
             if estado.menu_state == MenuState.MAIN:
                 title = BIG_FONT.render("MENU PRINCIPAL", True, (255, 255, 255))
-                screen.blit(title, (LARGURA//2 - title.get_width()//2, 60))
+                screen.blit(title, (globais.LARGURA//2 - title.get_width()//2, 60))
 
                 if resume_button.draw(screen):
                     print("[Main] Resume pressionado")
@@ -118,7 +119,7 @@ def main():
             elif estado.menu_state == MenuState.OPTIONS:
                 # title = BIG_FONT.render("MENU PRINCIPAL", True, (255, 255, 255))
                 sub = BIG_FONT.render("OPÇÕES", True, (255, 255, 255))
-                screen.blit(sub, (LARGURA/2-80, 80))
+                screen.blit(sub, (globais.LARGURA/2-80, 80))
 
                 if video_button.draw(screen):
                     estado.mudar_menu(MenuState.VIDEO_SETTINGS)
@@ -139,7 +140,7 @@ def main():
                 tela_config_sim.desenhar(screen)
 
         pygame.display.flip()
-        clock.tick(FPS)
+        clock.tick(globais.FPS)
 
     pygame.quit()
     sys.exit(0)

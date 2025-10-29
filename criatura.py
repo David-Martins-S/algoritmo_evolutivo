@@ -1,7 +1,7 @@
 import pygame
 import random
 import math
-from globais import *
+import globais
 
 
 class Criatura:
@@ -16,9 +16,9 @@ class Criatura:
             self.cor = (0, 100, 255) if self.sexo == 'M' else (255, 192, 203)
         else:
             self.cor = cor
-        self.visao = visao if visao is not None else random.randint(MINIMO_VISAO, MAXIMO_VISAO)
-        self.risco = risco if risco is not None else random.uniform(MINIMO_RISCO, MAXIMO_RISCO)
-        self.velocidade = velocidade if velocidade is not None else random.uniform(MINIMO_VELOCIDADE, MAXIMO_VELOCIDADE)
+        self.visao = visao if visao is not None else random.randint(globais.MINIMO_VISAO, globais.MAXIMO_VISAO)
+        self.risco = risco if risco is not None else random.uniform(globais.MINIMO_RISCO, globais.MAXIMO_RISCO)
+        self.velocidade = velocidade if velocidade is not None else random.uniform(globais.MINIMO_VELOCIDADE, globais.MAXIMO_VELOCIDADE)
         self.energia = 100.0
         self.comida_comida = 0
         self.geracao = geracao if geracao is not None else 1
@@ -72,9 +72,9 @@ class Criatura:
             self.y += math.sin(self.direcao) * self.velocidade
 
             # limites da tela
-            if self.x <= 0 or self.x >= LARGURA:
+            if self.x <= 0 or self.x >= globais.LARGURA:
                 self.direcao = math.pi - self.direcao
-            if self.y <= 0 or self.y >= ALTURA:
+            if self.y <= 0 or self.y >= globais.ALTURA:
                 self.direcao = -self.direcao
 
     def comer(self, comidas):
@@ -145,11 +145,11 @@ class Criatura:
     def desenhar(self, tela):
         pygame.draw.circle(tela, self.cor, (int(self.x), int(self.y)), self.raio)
         # Desenha o círculo de visão sutil
-        if MOSTRA_CIRCULO_VISAO:
+        if globais.MOSTRA_CIRCULO_VISAO:
             pygame.draw.circle(tela, (125, 125, 255), (int(self.x), int(self.y)), int(self.visao), 1)
 
         # Barra de energia pequena acima
-        if MOSTRA_BARRA_ENERGIA:
+        if globais.MOSTRA_BARRA_ENERGIA:
             barra_larg = 16
             barra_alt = 3
             x0 = int(self.x - barra_larg // 2)
@@ -159,14 +159,14 @@ class Criatura:
             pygame.draw.rect(tela, (50, 200, 50), (x0, y0, int(barra_larg * pct), barra_alt))
 
         # === Exibir número da geração ===
-        if MOSTRA_TEXTO_CABECA_CRIATURA:
+        if globais.MOSTRA_TEXTO_CABECA_CRIATURA:
             font = pygame.font.SysFont('Arial', 12)
             texto = font.render(f"{self.geracao}", True, (255, 255, 0))
             texto_rect = texto.get_rect(center=(int(self.x), int(self.y - self.raio - 16)))
             tela.blit(texto, texto_rect)
 
         # --- desenhar pontos de comida abaixo ---
-        if MOSTRA_COMIDA_COMIDA:
+        if globais.MOSTRA_COMIDA_COMIDA:
             n = getattr(self, "comida_comida", 0)
             if n > 0:
                 espacamento = 5
@@ -186,12 +186,12 @@ class Criatura:
                     tela.blit(texto, (self.x + total_largura // 2 + 4, base_y - texto.get_height() // 2))
 
         # linha de ligação
-        if MOSTRA_LINHA_LIGACAO:
+        if globais.MOSTRA_LINHA_LIGACAO:
             if hasattr(self, 'vizinhos'):
                 for v in self.vizinhos:
                     pygame.draw.line(tela, (100, 100, 255), (int(self.x), int(self.y)), (int(v.x), int(v.y)), 1)
 
         # indicador de parceiro detectado
-        if MOSTRA_GRAVIDEZ:
+        if globais.MOSTRA_GRAVIDEZ:
             if getattr(self, "detectou_parceiro", False) and getattr(self, "sexo") == 'F':
                 pygame.draw.circle(tela, (255, 255, 0), (int(self.x), int(self.y)), self.raio + 3, 1)

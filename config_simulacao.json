@@ -1,7 +1,7 @@
 {
     "CAMINHO_CONFIG": "config_simulacao.json",
-    "LARGURA": 1920,
-    "ALTURA": 1080,
+    "LARGURA": 1024,
+    "ALTURA": 768,
     "NUM_COMIDAS_INICIAL": 80,
     "NUM_CRIATURAS_INICIAL": 31,
     "PASSOS_GERACAO": 1200,
@@ -24,5 +24,6 @@
     "MOSTRA_TEXTO_CABECA_CRIATURA": false,
     "MOSTRA_GRAVIDEZ": true,
     "LIGA_SOM_COMER": true,
-    "LIGA_SOM_VUSH": true
+    "LIGA_SOM_VUSH": true,
+    "TAMANHO_CRIATURAS": 20
 }

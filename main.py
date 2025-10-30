@@ -26,8 +26,9 @@ som_pop.set_volume(0.3)  # volume de 0.0 a 1.0
 som_vush.set_volume(0.5)  # volume de 0.0 a 1.0
 
 
-FONT = pygame.font.SysFont("Arial", 20)
-BIG_FONT = pygame.font.SysFont("Arial", 48)
+
+FONT = pygame.font.SysFont("Segoe UI Emoji", 20)
+BIG_FONT = pygame.font.SysFont("Segoe UI Emoji", 48)
 
 # instância global
 estado = GerenciadorDeEstado()

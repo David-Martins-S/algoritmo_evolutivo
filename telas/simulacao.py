@@ -123,7 +123,8 @@ class Simulacao:
             self.nova_geracao()
 
     def draw(self, surface):
-        surface.fill((20,20,20))
+        # surface.fill((20,20,20))
+        surface.fill((0, 0, 0))
 
         if getattr(self, "estado", "") == "fim":
             self.desenhar_tela_fim(surface)

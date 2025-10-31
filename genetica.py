@@ -1,10 +1,5 @@
 import random
-from globais import (LARGURA, ALTURA,
-                     MINIMO_VISAO, MAXIMO_VISAO,
-                     MINIMO_VELOCIDADE, MAXIMO_VELOCIDADE,
-                     VARIACAO_VISAO, VARIACAO_VELOCIDADE,
-                     VARIACAO_RISCO
-                     )
+import globais
 from criatura import Criatura
 
 
@@ -13,32 +8,34 @@ def nova_geracao(geracao_finalizada, geracao_atual):
 
     def cria_herdeiro(parent):
         """Cria um filho a partir de um objeto 'parent' aplicando mutações suaves."""
-        nova_visao = int(parent.visao + random.randint(-VARIACAO_VISAO, VARIACAO_VISAO))
-        nova_vel = parent.velocidade + random.uniform(-VARIACAO_VELOCIDADE, VARIACAO_VELOCIDADE)
+        nova_visao = int(parent.visao + random.randint(-globais.VARIACAO_VISAO, globais.VARIACAO_VISAO))
+        nova_vel = parent.velocidade + random.uniform(-globais.VARIACAO_VELOCIDADE, globais.VARIACAO_VELOCIDADE)
+        altruismo = max(0, parent.altruismo + random.uniform(-globais.VARIACAO_ALTRUISMO, globais.VARIACAO_ALTRUISMO))
         parent_generation = getattr(parent, "geracao", 1)
         filho_geracao = geracao_atual + 1
-        novo_risco = parent.risco + random.uniform(-VARIACAO_RISCO, VARIACAO_RISCO)
+        novo_risco = parent.risco + random.uniform(-globais.VARIACAO_RISCO, globais.VARIACAO_RISCO)
         if novo_risco < 0:
             novo_risco = 0
         elif novo_risco > 1:
             novo_risco = 1
+        autoexploracao = max(0, min(1, parent.autoexploracao + random.uniform(-0.1, 0.1)))
+        family_id = parent.family_id
+
 
         # Cria o objeto
-        filho = Criatura(random.uniform(0, LARGURA),
-                         random.uniform(0, ALTURA),
-                         visao=nova_visao, velocidade=nova_vel, cor=None, geracao=filho_geracao, risco=novo_risco)
+        filho = Criatura(random.uniform(0, globais.LARGURA),
+                         random.uniform(0, globais.ALTURA),
+                         visao=nova_visao,
+                         velocidade=nova_vel,
+                         cor=None,
+                         geracao=filho_geracao,
+                         risco=novo_risco,
+                         family_id=family_id,
+                         autoexploracao=autoexploracao,
+                         altruismo=altruismo)
 
-        filho.autoexploracao = max(0, min(1, parent.autoexploracao + random.uniform(-0.1, 0.1)))
+        filho.cor = (0, 100, 255) if filho.sexo == 'M' else (255, 192, 203)
 
-        # # Herança e mutação dos pesos comportamentais
-        # if hasattr(parent, "pesos"):
-        #     filho.pesos = {
-        #         k: max(0.0, v + random.uniform(-0.05, 0.05))
-        #         for k, v in parent.pesos.items()
-        #     }
-        # else:
-        #     # fallback (caso alguma criatura antiga não tenha pesos)
-        #     filho.pesos = {"ir_para_comida": 1.0, "aleatoriedade": 0.2}
 
         return filho
 
@@ -50,17 +47,27 @@ def nova_geracao(geracao_finalizada, geracao_atual):
         nova_idade = parent_idade + 15
         sexo = getattr(parent, "sexo")
         risco = getattr(parent, "risco")
+        family_id = getattr(parent, "family_id")
+        altruismo = getattr(parent, "altruismo")
+        comida_doada = getattr(parent, "comida_doada", 0)
 
-        p = Criatura(random.uniform(0, LARGURA),
-                     random.uniform(0, ALTURA),
-                     int(parent.visao),
-                     float(parent.velocidade),
-                     getattr(parent, "cor", (0, 100, 255)),
-                     new_generation, nova_idade, sexo, risco)
+        p = Criatura(random.uniform(0, globais.LARGURA),
+                     random.uniform(0, globais.ALTURA),
+                     visao=int(parent.visao),
+                     velocidade=float(parent.velocidade),
+                     cor=getattr(parent, "cor", (0, 100, 255)),
+                     geracao=new_generation,
+                     idade=nova_idade,
+                     sexo=sexo,
+                     risco=risco,
+                     family_id=family_id,
+                     altruismo=altruismo,
+                     comida_doada=comida_doada)
         # Preserva energia? normalmente resetamos energia para 100 na nova geração
         p.energia = getattr(parent, "energia", 100)
         comida_anterior = getattr(parent, "comida_comida", 1)
         p.comida_comida = 1 if comida_anterior > 1 else 0
+        p.cor = (0, 100, 255) if p.sexo == 'M' else (255, 192, 203)
         return p
 
     for parent in geracao_finalizada:
@@ -80,7 +87,7 @@ def nova_geracao(geracao_finalizada, geracao_atual):
             elif eaten >= 2 and detectou:
                 # sobrevive e gera até 3 filhos (dependendo da comida)
 
-                num_filhos = min(eaten - 1, 3)  # 1 comida = 0 filhos, 2 = 1, 3 = 2, 4+ = 3
+                num_filhos = min(eaten - 1, 10)  # 1 comida = 0 filhos, 2 = 1, 3 = 2, 4+ = 3
                 for _ in range(num_filhos):
                     f = cria_herdeiro(parent)
                     f.comida_comida = 1  # cada filho nasce "alimentado"
@@ -101,10 +108,10 @@ def nova_geracao(geracao_finalizada, geracao_atual):
     # fallback: se nada sobreviveu, repovoar com alguns indivíduos padrão
     if not novas:
         for _ in range(max(1, len(geracao_finalizada)//2)):
-            novas.append(Criatura(random.uniform(0, LARGURA),
-                                  random.uniform(0, ALTURA),
-                                  random.randint(MINIMO_VISAO, MAXIMO_VISAO),
-                                  random.uniform(MINIMO_VELOCIDADE, MAXIMO_VELOCIDADE),
+            novas.append(Criatura(random.uniform(0, globais.LARGURA),
+                                  random.uniform(0, globais.ALTURA),
+                                  random.randint(globais.MINIMO_VISAO, globais.MAXIMO_VISAO),
+                                  random.uniform(globais.MINIMO_VELOCIDADE, globais.MAXIMO_VELOCIDADE),
                                   (0, 100, 255),
                                   1))
 

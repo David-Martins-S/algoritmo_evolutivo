@@ -6,25 +6,24 @@ import globais
 
 class Criatura:
 
-    def __init__(self, x, y, visao=None, velocidade=None, cor=None, geracao=None, idade=None, sexo=None, risco=None):
+    def __init__(self, x, y, visao=None, velocidade=None, cor=None, geracao=None,
+                 idade=None, sexo=None, risco=None, family_id=None, altruismo=None, **kwargs):
         self.x = float(x)
         self.y = float(y)
         self.sexo = sexo if sexo is not None else random.choice(['M', 'F'])
         self.raio = 5
-        # self.cor = cor if cor is not None else COR_INICIAL  # azul
-        if cor is None:
-            self.cor = (0, 100, 255) if self.sexo == 'M' else (255, 192, 203)
-        else:
-            self.cor = cor
+        self.cor = cor if cor is not None else (0, 100, 255) if self.sexo == 'M' else (255, 192, 203)
         self.visao = visao if visao is not None else random.randint(globais.MINIMO_VISAO, globais.MAXIMO_VISAO)
         self.risco = risco if risco is not None else random.uniform(globais.MINIMO_RISCO, globais.MAXIMO_RISCO)
-        self.velocidade = velocidade if velocidade is not None else random.uniform(globais.MINIMO_VELOCIDADE, globais.MAXIMO_VELOCIDADE)
+        self.velocidade = velocidade if velocidade is not None else random.uniform(
+            globais.MINIMO_VELOCIDADE, globais.MAXIMO_VELOCIDADE)
         self.energia = 100.0
         self.comida_comida = 0
         self.geracao = geracao if geracao is not None else 1
         self.idade = idade if idade is not None else 15
         self.autoexploracao = random.uniform(0.0, 1.0)  # 0 = totalmente focado, 1 = muito aleatório
         self.detectou_parceiro = False
+        self.doou_comida = 0
 
         # Direção persistente (ângulo em radianos)
         self.direcao = random.uniform(0, 2 * math.pi)
@@ -35,6 +34,11 @@ class Criatura:
             "ir_para_comida": random.uniform(0.8, 1.2),
             "aleatoriedade": random.uniform(0.0, 0.5)
         }
+
+        # preparação para evolução formiga
+
+        self.family_id = family_id if family_id is not None else random.randint(1, 1000000)
+        self.altruismo = altruismo if altruismo is not None else random.uniform(0.0, 0.1)  # tendência a doar
 
     def encontrar_alvo(self, comidas):
         """Retorna a comida mais próxima dentro do raio de visão (ou None)."""
@@ -105,6 +109,7 @@ class Criatura:
                 outra.x -= dx * overlap / 2
                 outra.y -= dy * overlap / 2
 
+    # toda a interação entre criaturas está acontecendo aqui
     def perceber_vizinhos(self, criaturas):
         """Retorna lista de criaturas próximas e define se detectou parceiro reprodutivo."""
         vizinhos = []
@@ -118,6 +123,7 @@ class Criatura:
                 continue
 
             dist = math.dist((self.x, self.y), (outra.x, outra.y))
+            # se está 'vendo' outra criatura
             if dist <= self.visao:
                 vizinhos.append(outra)
 
@@ -140,7 +146,41 @@ class Criatura:
                     # Fêmeas apenas aguardam machos decidirem
                     pass
 
+                # verifica se a outra é da família e pode doar comida
+                self.tentar_doar(outra)
+
         return vizinhos
+
+    def tentar_doar(self, outra):
+
+        if not hasattr(self, "encontros_recentes"):
+            self.encontros_recentes = set()
+
+        if id(outra) not in self.encontros_recentes:
+            mesma_familia = True if self.family_id == outra.family_id else False
+            sentindo_se_altruista = random.random() < self.altruismo
+            esta_gravida = self.detectou_parceiro
+
+
+            #se encontra alguém da mesma família sem comida e está com comida "sobrando"
+            if mesma_familia and sentindo_se_altruista:
+                if self.comida_comida > 1 and outra.comida_comida == 0:
+                    print("doando comida para alguém com fome")
+                    self.comida_comida -= 1
+                    outra.comida_comida += 1
+                    self.doou_comida += 1
+
+                # se encontra uma fêmea grávida da mesma família com menos de 2 comidas
+                elif not esta_gravida and outra.detectou_parceiro and outra.comida_comida < 2:
+                    if self.comida_comida > 1 or random.random() < self.risco:
+                        print("doando comida para uma grávida")
+                        self.comida_comida -= 1
+                        outra.comida_comida += 1
+                        self.doou_comida += 1
+
+        self.encontros_recentes.add(id(outra))
+
+
 
     def desenhar(self, tela):
         pygame.draw.circle(tela, self.cor, (int(self.x), int(self.y)), self.raio)
@@ -161,7 +201,7 @@ class Criatura:
         # === Exibir número da geração ===
         if globais.MOSTRA_TEXTO_CABECA_CRIATURA:
             font = pygame.font.SysFont('Arial', 12)
-            texto = font.render(f"{self.geracao}", True, (255, 255, 0))
+            texto = font.render(f"{self.family_id}", True, (255, 255, 0))
             texto_rect = texto.get_rect(center=(int(self.x), int(self.y - self.raio - 16)))
             tela.blit(texto, texto_rect)
 

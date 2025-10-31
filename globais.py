@@ -27,6 +27,7 @@ MOSTRA_TEXTO_CABECA_CRIATURA = "False"
 MOSTRA_GRAVIDEZ = "True"
 LIGA_SOM_COMER = "False"
 LIGA_SOM_VUSH = "True"
+VARIACAO_ALTRUISMO = 0.1
 
 
 def carregar_config():

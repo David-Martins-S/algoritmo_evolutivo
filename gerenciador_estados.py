@@ -1,34 +1,3 @@
-# import pygame
-#
-# from estados_menu import MenuState
-#
-# class GerenciadorDeEstado:
-#     def __init__(self):
-#         self.menu_state = MenuState.MAIN
-#         self.game_paused = True
-#
-#     def mudar_menu(self, novo_estado: MenuState):
-#         print(f"[GERENCIADOR] {self.menu_state.name} → {novo_estado.name}")
-#         self.menu_state = novo_estado
-#
-#         pygame.event.clear()
-#         pygame.time.wait(100)
-#
-#     def pausar_jogo(self):
-#         """Define o estado de pausa."""
-#         self.game_paused = True
-#
-#     def retomar_jogo(self):
-#         """Retoma o jogo."""
-#         self.game_paused = False
-#
-#     def esta_pausado(self):
-#         """Retorna se o jogo está pausado."""
-#         return self.game_paused
-#
-#
-# # cria a instância única aqui mesmo
-# estado_global = GerenciadorDeEstado()
 
 import pygame
 
@@ -42,6 +11,7 @@ class GerenciadorDeEstado:
             cls._instancia = super().__new__(cls)
             cls._instancia.menu_state = MenuState.MAIN
             cls._instancia._pausado = True
+            cls._instancia._freeze = False
         return cls._instancia
 
     def mudar_menu(self, novo_estado: MenuState):
@@ -60,6 +30,15 @@ class GerenciadorDeEstado:
 
     def esta_pausado(self):
         return self._pausado
+
+    def freeze(self):
+        self._freeze = True
+
+    def desfreezar(self):
+        self._freeze = False
+
+    def esta_freezado(self):
+        return self._freeze
 
 
 

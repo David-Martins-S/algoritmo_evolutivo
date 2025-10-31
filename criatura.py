@@ -7,7 +7,8 @@ import globais
 class Criatura:
 
     def __init__(self, x, y, visao=None, velocidade=None, cor=None, geracao=None,
-                 idade=None, sexo=None, risco=None, family_id=None, altruismo=None, **kwargs):
+                 idade=None, sexo=None, risco=None, family_id=None, altruismo=None, doou_comida=None,
+                 autoexploracao=None):
         self.x = float(x)
         self.y = float(y)
         self.sexo = sexo if sexo is not None else random.choice(['M', 'F'])
@@ -21,14 +22,16 @@ class Criatura:
         self.comida_comida = 0
         self.geracao = geracao if geracao is not None else 1
         self.idade = idade if idade is not None else 15
-        self.autoexploracao = random.uniform(0.0, 1.0)  # 0 = totalmente focado, 1 = muito aleatório
+        self.autoexploracao = (
+            autoexploracao) if autoexploracao is not None else random.uniform(0.0, 1.0)  # 0 = totalmente focado, 1 = muito aleatório
         self.detectou_parceiro = False
         self.doou_comida = 0
-
-        # Direção persistente (ângulo em radianos)
         self.direcao = random.uniform(0, 2 * math.pi)
         self.passo_atual = 0
         self.passos_antes_de_mudar = random.randint(20, 80)
+        self.parceiras_recentes = set()
+        self.encontros_recentes = set()
+        self.doou_comida = doou_comida if doou_comida is not None else 0
 
         self.pesos = {
             "ir_para_comida": random.uniform(0.8, 1.2),
@@ -161,8 +164,7 @@ class Criatura:
             sentindo_se_altruista = random.random() < self.altruismo
             esta_gravida = self.detectou_parceiro
 
-
-            #se encontra alguém da mesma família sem comida e está com comida "sobrando"
+            # se encontra alguém da mesma família sem comida e está com comida "sobrando"
             if mesma_familia and sentindo_se_altruista:
                 if self.comida_comida > 1 and outra.comida_comida == 0:
                     print("doando comida para alguém com fome")
@@ -179,8 +181,6 @@ class Criatura:
                         self.doou_comida += 1
 
         self.encontros_recentes.add(id(outra))
-
-
 
     def desenhar(self, tela):
         pygame.draw.circle(tela, self.cor, (int(self.x), int(self.y)), self.raio)

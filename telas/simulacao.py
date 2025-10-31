@@ -9,6 +9,7 @@ import globais
 from criatura import Criatura
 from comida import Comida
 from gerenciador_estados import GerenciadorDeEstado
+from colonia import Colonia
 
 import genetica
 
@@ -34,6 +35,7 @@ class Simulacao:
         self.passos = 0
         self.maior_geracao_atual = 0
         self.total_filhos_geracao = 0
+        self.colonias = {}
 
         # populações
         self.criaturas = [Criatura(random.uniform(0, globais.LARGURA), random.uniform(0, globais.ALTURA))
@@ -55,6 +57,11 @@ class Simulacao:
                                  'Detecção de parceiros',
                                  'Taxa de doações'])
 
+        for criatura in self.criaturas:
+            if criatura.family_id not in self.colonias:
+                self.colonias[criatura.family_id] = Colonia(criatura.family_id)
+            self.colonias[criatura.family_id].adicionar_criatura(criatura)
+
     def salvar_dados(self):
         with open(globais.CSV_ARQUIVO, 'a', newline='') as f:
             writer = csv.writer(f)
@@ -71,6 +78,11 @@ class Simulacao:
                 estatisticas.media_altruismo])
 
     def nova_geracao(self):
+        for colonia in self.colonias.values():
+            colonia.atualizar()
+            if colonia.esta_extinta():
+                print(f"Colônia {colonia.family_id} extinta!")
+
         novas = genetica.nova_geracao(self.criaturas, self.geracao)
         self.criaturas = novas
         self.comidas = [Comida() for _ in range(globais.NUM_COMIDAS_INICIAL)]
@@ -171,6 +183,7 @@ class Simulacao:
         self.desenhar_estatisticas(surface)
 
     def desenhar_tela_fim(self, surface):
+        estado.freeze()
         surface.fill((10, 10, 10))
         linhas = [
             "💀 FIM DA SIMULAÇÃO 💀",
@@ -212,7 +225,7 @@ class Simulacao:
         estatisticas.total_machos = sum(1 for c in criaturas if c.sexo == 'M')
         estatisticas.total_femeas = sum(1 for c in criaturas if c.sexo == 'F')
         estatisticas.media_risco = round(
-            sum(getattr(c, "risco", 0) for c in criaturas if c.sexo == 'M') / estatisticas.total_machos, 2
+            sum(getattr(c, "risco", 0) for c in criaturas if c.sexo == 'M') / max(1, estatisticas.total_machos), 2
         )
         estatisticas.media_altruismo = round(
             sum(getattr(c, "altruismo", 0) for c in criaturas) / len(criaturas), 2

@@ -21,7 +21,6 @@ def nova_geracao(geracao_finalizada, geracao_atual):
         autoexploracao = max(0, min(1, parent.autoexploracao + random.uniform(-0.1, 0.1)))
         family_id = parent.family_id
 
-
         # Cria o objeto
         filho = Criatura(random.uniform(0, globais.LARGURA),
                          random.uniform(0, globais.ALTURA),
@@ -36,7 +35,6 @@ def nova_geracao(geracao_finalizada, geracao_atual):
 
         filho.cor = (0, 100, 255) if filho.sexo == 'M' else (255, 192, 203)
 
-
         return filho
 
     def cria_pai_sem_mutacao(parent):
@@ -49,7 +47,7 @@ def nova_geracao(geracao_finalizada, geracao_atual):
         risco = getattr(parent, "risco")
         family_id = getattr(parent, "family_id")
         altruismo = getattr(parent, "altruismo")
-        comida_doada = getattr(parent, "comida_doada", 0)
+        doou_comida = getattr(parent, "doou_comida", 0)
 
         p = Criatura(random.uniform(0, globais.LARGURA),
                      random.uniform(0, globais.ALTURA),
@@ -62,7 +60,7 @@ def nova_geracao(geracao_finalizada, geracao_atual):
                      risco=risco,
                      family_id=family_id,
                      altruismo=altruismo,
-                     comida_doada=comida_doada)
+                     doou_comida=doou_comida)
         # Preserva energia? normalmente resetamos energia para 100 na nova geração
         p.energia = getattr(parent, "energia", 100)
         comida_anterior = getattr(parent, "comida_comida", 1)

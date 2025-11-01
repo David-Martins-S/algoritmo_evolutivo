@@ -20,29 +20,24 @@ BIG_FONT = pygame.font.Font(None, 48)
 estado = GerenciadorDeEstado()
 estatisticas = Estatisticas()
 
+BARREIRA_X = globais.LARGURA / 2
 
 class Simulacao:
     def __init__(self):
         self.tela = pygame.display.get_surface()
         if self.tela is None:
-            # criar surface caso main não tenha criado
             self.tela = pygame.display.set_mode((globais.LARGURA, globais.ALTURA))
         pygame.display.set_caption("Evolução - Simulação")
         self.clock = pygame.time.Clock()
         self.font = FONT
-
         self.geracao = 1
         self.passos = 0
         self.maior_geracao_atual = 0
         self.total_filhos_geracao = 0
         self.colonias = {}
-
-        # populações
         self.criaturas = [Criatura(random.uniform(0, globais.LARGURA), random.uniform(0, globais.ALTURA))
                           for _ in range(globais.NUM_CRIATURAS_INICIAL)]
         self.comidas = [Comida() for _ in range(globais.NUM_COMIDAS_INICIAL)]
-
-        # CSV
         if not os.path.isfile(globais.CSV_ARQUIVO):
             with open(globais.CSV_ARQUIVO, 'w', newline='') as f:
                 writer = csv.writer(f)
@@ -56,11 +51,20 @@ class Simulacao:
                                  'Total de filhos da geração',
                                  'Detecção de parceiros',
                                  'Taxa de doações'])
+            with open("colonias.csv", 'a', newline='') as f:
+                writer = csv.DictWriter(f, fieldnames=self.colonias[next(iter(self.colonias))].estatisticas().keys())
+                if f.tell() == 0:
+                    writer.writeheader()
+                for colonia in self.colonias.values():
+                    writer.writerow(colonia.estatisticas())
 
+        # adiciona as criaturas às colônias no início, criando as colonias
         for criatura in self.criaturas:
             if criatura.family_id not in self.colonias:
                 self.colonias[criatura.family_id] = Colonia(criatura.family_id)
             self.colonias[criatura.family_id].adicionar_criatura(criatura)
+            criatura.colonia = self.colonias[criatura.family_id]
+
 
     def salvar_dados(self):
         with open(globais.CSV_ARQUIVO, 'a', newline='') as f:
@@ -78,30 +82,46 @@ class Simulacao:
                 estatisticas.media_altruismo])
 
     def nova_geracao(self):
+        colonias_extintas = []
+
         for colonia in self.colonias.values():
             colonia.atualizar()
             if colonia.esta_extinta():
                 print(f"Colônia {colonia.family_id} extinta!")
+                colonias_extintas.append(colonia.family_id)
 
+        # remove colônias com população viva == 0
+        for c_e in colonias_extintas:
+            removida = self.colonias.pop(c_e)
+
+        # gera novas criaturas
         novas = genetica.nova_geracao(self.criaturas, self.geracao)
+
+        # adiciona as novas criaturas às suas colônias (mantém as que já estão)
+        for c in novas:
+            self.colonias[c.family_id].adicionar_criatura(c)
+
+        print("= Colônias restantes =")
+        print(len(self.colonias))
+        for colonia in self.colonias.values():
+            colonia.atualiza_populacao_viva()
+            print(f"{colonia.family_id} | membros: {colonia.populacao_viva} |"
+                  f" altruísmo médio: {colonia.altruismo_medio:.2f}")
         self.criaturas = novas
         self.comidas = [Comida() for _ in range(globais.NUM_COMIDAS_INICIAL)]
         self.geracao += 1
         self.passos = 0
 
     def handle_event(self, evento):
-        # captura ESC dentro da simulação
         if evento.type == pygame.KEYDOWN:
             if evento.key == pygame.K_ESCAPE:
                 print("[Simulação] ESC pressionado — pausando")
                 estado.pausar_jogo()
             if evento.key == pygame.K_r and getattr(self, "estado", "") == "fim":
                 self.reiniciar_simulacao()
-        # 👇 Adicionar comida com clique esquerdo
         if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:  # 1 = botão esquerdo
             print("mouse clicado")
             pos_x, pos_y = pygame.mouse.get_pos()
-            from comida import Comida  # ajuste o import conforme seu projeto
             nova_comida = Comida(pos_x, pos_y)
             self.comidas.append(nova_comida)
         elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 3:
@@ -110,8 +130,6 @@ class Simulacao:
                 comida_mais_proxima = min(self.comidas, key=lambda c: (c.x - pos_x) ** 2 + (c.y - pos_y) ** 2)
                 self.comidas.remove(comida_mais_proxima)
         elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 2:
-            print("botão do meio clicado")
-            # pausar simulação
             estado.freeze() if not estado.esta_freezado() else estado.desfreezar()
 
     def reiniciar_simulacao(self):
@@ -132,16 +150,12 @@ class Simulacao:
                     alvo = c.encontrar_alvo(self.comidas)
                 c.mover(alvo=alvo) if hasattr(c, 'mover') else None
                 if hasattr(c, 'comer'):
-                    comida_antes = c.comida_comida
                     c.comer(self.comidas)
-                    # if globais.LIGA_SOM_COMER:
-                    #     if c.comida_comida > comida_antes:
-                    #         if hasattr(self, "som_pop"):
-                    #             self.som_pop.play()
                 c.evitar_colisoes(self.criaturas)
                 estava_gravida = c.detectou_parceiro
                 doou_comida = c.doou_comida
                 c.vizinhos = c.perceber_vizinhos(self.criaturas)
+
                 if globais.LIGA_SOM_VUSH:
                     if c.detectou_parceiro != estava_gravida:
                         if hasattr(self, "som_vush"):
@@ -155,10 +169,14 @@ class Simulacao:
                         self.criaturas.remove(c)
                     except ValueError:
                         pass
-
             self.passos += 1
+            # for colonia in self.colonias.values():
+            #     if colonia.populacao_viva > 3:  # só colônias grandes cooperam
+            #         colonia.doar_para_familia()
+
             # fim de geração
             if not self.comidas or not self.criaturas or self.passos >= globais.PASSOS_GERACAO:
+                print("============= ============")
                 print(f"[Simulação] Fim da geração {self.geracao}")
                 self.salvar_dados()
                 self.nova_geracao()
@@ -169,17 +187,15 @@ class Simulacao:
             self.desenhar_tela_fim(surface)
             return
         for comida in self.comidas:
-            if hasattr(comida, 'desenhar'):
-                comida.desenhar(surface)
-            else:
-                pygame.draw.circle(surface, (200,200,0), (int(getattr(comida,'x',0)), int(getattr(comida,'y',0))), getattr(comida,'raio',3))
+            comida.desenhar(surface)
         for c in self.criaturas:
             if hasattr(c, 'desenhar'):
                 c.desenhar(surface)
             else:
                 pygame.draw.circle(surface, (100, 100, 255), (int(c.x), int(c.y)), 6)
+        if globais.BARREIRA_ATIVADA:
+            pygame.draw.line(surface, (180, 180, 180), (BARREIRA_X, 0), (BARREIRA_X, globais.ALTURA), 2)
 
-        # estatísticas
         self.desenhar_estatisticas(surface)
 
     def desenhar_tela_fim(self, surface):
@@ -193,22 +209,17 @@ class Simulacao:
             f"Geração alcançada: {self.geracao}",
             f"População final: {len(self.criaturas)}",
         ]
-        # Estatísticas adicionais, se quiser
         if self.criaturas:
             media_visao = sum(c.visao for c in self.criaturas) / len(self.criaturas)
             media_vel = sum(c.velocidade for c in self.criaturas) / len(self.criaturas)
             linhas.append(f"Visão média: {media_visao:.2f}")
             linhas.append(f"Velocidade média: {media_vel:.2f}")
-
-        # Renderiza o texto centralizado
         y = surface.get_height() // 3
         for linha in linhas:
             texto = self.font.render(linha, True, (255, 255, 255))
             rect = texto.get_rect(center=(surface.get_width() // 2, y))
             surface.blit(texto, rect)
             y += 40
-
-        # Botão de reinício (opcional)
         texto_reset = self.font.render("Pressione [R] para reiniciar", True, (180, 180, 180))
         rect_reset = texto_reset.get_rect(center=(surface.get_width() // 2, y + 40))
         surface.blit(texto_reset, rect_reset)
@@ -238,11 +249,8 @@ class Simulacao:
         estatisticas.populacao = len(criaturas)
 
     def desenhar_estatisticas(self, surface):
-
         self.calcular_estatisticas()
         estatisticas.desenhar_estatisticas(surface)
-
-        # Verifica extinção
         if len(self.criaturas) == 0:
             self.motivo_fim = "Todas as criaturas morreram."
             self.estado = "fim"

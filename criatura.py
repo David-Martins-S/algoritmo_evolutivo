@@ -4,7 +4,10 @@ import math
 import globais
 
 
+BARREIRA_X = globais.LARGURA / 2
+
 class Criatura:
+
 
     def __init__(self, x, y, visao=None, velocidade=None, cor=None, geracao=None,
                  idade=None, sexo=None, risco=None, family_id=None, altruismo=None, doou_comida=None,
@@ -23,7 +26,7 @@ class Criatura:
         self.geracao = geracao if geracao is not None else 1
         self.idade = idade if idade is not None else 15
         self.autoexploracao = (
-            autoexploracao) if autoexploracao is not None else random.uniform(0.0, 1.0)  # 0 = totalmente focado, 1 = muito aleatório
+            autoexploracao) if autoexploracao is not None else random.uniform(0.0, 1.0)
         self.detectou_parceiro = False
         self.doou_comida = 0
         self.direcao = random.uniform(0, 2 * math.pi)
@@ -32,15 +35,10 @@ class Criatura:
         self.parceiras_recentes = set()
         self.encontros_recentes = set()
         self.doou_comida = doou_comida if doou_comida is not None else 0
+        self.colonia = None
 
-        self.pesos = {
-            "ir_para_comida": random.uniform(0.8, 1.2),
-            "aleatoriedade": random.uniform(0.0, 0.5)
-        }
-
-        # preparação para evolução formiga
-
-        self.family_id = family_id if family_id is not None else random.randint(1, 1000000)
+        # self.family_id = family_id if family_id is not None else random.randint(1, 1000000)
+        self.family_id = family_id if family_id is not None else random.choice(globais.ANT_FAMILY_NAMES)
         self.altruismo = altruismo if altruismo is not None else random.uniform(0.0, 0.1)  # tendência a doar
 
     def encontrar_alvo(self, comidas):
@@ -49,9 +47,19 @@ class Criatura:
         menor_dist = float('inf')
         for comida in comidas:
             dist = math.dist((self.x, self.y), (comida.x, comida.y))
-            if dist <= self.visao and dist < menor_dist:
-                menor_dist = dist
-                alvo = comida
+            if globais.BARREIRA_ATIVADA:
+                if self.colonia.lado_colonia == "esquerda" and comida.x < BARREIRA_X:
+                    if dist <= self.visao and dist < menor_dist:
+                        menor_dist = dist
+                        alvo = comida
+                if self.colonia.lado_colonia == "direita" and comida.x > BARREIRA_X:
+                    if dist <= self.visao and dist < menor_dist:
+                        menor_dist = dist
+                        alvo = comida
+            else:
+                if dist <= self.visao and dist < menor_dist:
+                    menor_dist = dist
+                    alvo = comida
         return alvo
 
     def mover(self, alvo=None):
@@ -83,6 +91,14 @@ class Criatura:
                 self.direcao = math.pi - self.direcao
             if self.y <= 0 or self.y >= globais.ALTURA:
                 self.direcao = -self.direcao
+
+            if globais.BARREIRA_ATIVADA:
+                if self.x < BARREIRA_X and self.colonia.lado_colonia == "esquerda":
+                    # Está do lado esquerdo tentando atravessar
+                    self.direcao = math.pi - self.direcao
+                if self.x < BARREIRA_X and self.colonia.lado_colonia == "direita":
+                    # Está do lado esquerdo tentando atravessar
+                    self.direcao = math.pi - self.direcao
 
     def comer(self, comidas):
         """Verifica colisão com comida e consome apenas uma por frame."""
@@ -164,21 +180,24 @@ class Criatura:
             sentindo_se_altruista = random.random() < self.altruismo
             esta_gravida = self.detectou_parceiro
 
-            # se encontra alguém da mesma família sem comida e está com comida "sobrando"
-            if mesma_familia and sentindo_se_altruista:
-                if self.comida_comida > 1 and outra.comida_comida == 0:
-                    print("doando comida para alguém com fome")
-                    self.comida_comida -= 1
-                    outra.comida_comida += 1
-                    self.doou_comida += 1
+            # apenas doa comida se não estiver grávida e se a outra for da mesma família
+            if not esta_gravida and mesma_familia:
 
-                # se encontra uma fêmea grávida da mesma família com menos de 2 comidas
-                elif not esta_gravida and outra.detectou_parceiro and outra.comida_comida < 2:
-                    if self.comida_comida > 1 or random.random() < self.risco:
-                        print("doando comida para uma grávida")
+                # se encontra alguém da mesma família sem comida e está com comida "sobrando"
+                if sentindo_se_altruista:
+                    if self.comida_comida > 1 and outra.comida_comida == 0:
+                        print("doando comida para alguém com fome")
                         self.comida_comida -= 1
                         outra.comida_comida += 1
                         self.doou_comida += 1
+
+                    # se encontra uma fêmea grávida da mesma família com menos de 2 comidas
+                    elif outra.detectou_parceiro and outra.comida_comida < 2:
+                        if self.comida_comida > 1 or random.random() < self.risco:
+                            print("doando comida para uma grávida")
+                            self.comida_comida -= 1
+                            outra.comida_comida += 1
+                            self.doou_comida += 1
 
         self.encontros_recentes.add(id(outra))
 
@@ -200,8 +219,11 @@ class Criatura:
 
         # === Exibir número da geração ===
         if globais.MOSTRA_TEXTO_CABECA_CRIATURA:
+            cor_texto = (255, 255, 0)
+            # if hasattr(self, "colonia"):
+            #     cor_texto = (255, 255, 0) if self.colonia.lado_colonia == "esquerda" else (0, 255, 255)
             font = pygame.font.SysFont('Arial', 12)
-            texto = font.render(f"{self.family_id}", True, (255, 255, 0))
+            texto = font.render(f"{self.family_id}", True, cor_texto)
             texto_rect = texto.get_rect(center=(int(self.x), int(self.y - self.raio - 16)))
             tela.blit(texto, texto_rect)
 

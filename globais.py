@@ -2,7 +2,7 @@ import json
 import os
 
 CAMINHO_CONFIG = "config_simulacao.json"
-LARGURA =  1360
+LARGURA = 1360
 ALTURA = 768
 NUM_COMIDAS_INICIAL = 60
 NUM_CRIATURAS_INICIAL = 31
@@ -28,6 +28,40 @@ MOSTRA_GRAVIDEZ = "True"
 LIGA_SOM_COMER = "False"
 LIGA_SOM_VUSH = "True"
 VARIACAO_ALTRUISMO = 0.1
+BARREIRA_ATIVADA = False
+
+ANT_FAMILY_NAMES = [
+    "Formicidae Prime",
+    "Mandíbula Vermelha",
+    "Rainha Solar",
+    "Terranautas",
+    "Ninho do Amanhecer",
+    "As Diligentes",
+    "Linha Alfa",
+    "Os Recolectores",
+    "Dinastia da Areia",
+    "Semente Viva",
+    "As Perseverantes",
+    "Colônia Âmbar",
+    "Clã do Tronco",
+    "Os Mineradores",
+    "Filhas do Sol",
+    "Linha Obsidiana",
+    "Os Vigilantes",
+    "Casa Rubra",
+    "As Operárias de Ferro",
+    "Os Doceiros",
+    "Família Hexápode",
+    "Colônia Esmeralda",
+    "Os Traçadores",
+    "Dinastia Eclipse",
+    "Ninho do Vento",
+    "Os Escavadores",
+    "Casa Aurora",
+    "Os Enfileirados",
+    "Clã das Folhas",
+    "Família Granular"
+]
 
 
 def carregar_config():
@@ -51,7 +85,6 @@ dados = carregar_config()
 
 # Torna todas as chaves disponíveis como variáveis globais
 for chave, valor in dados.items():
-    print(chave, " : ", valor)
     globals()[chave] = valor
 
 

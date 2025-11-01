@@ -38,35 +38,17 @@ def nova_geracao(geracao_finalizada, geracao_atual):
         return filho
 
     def cria_pai_sem_mutacao(parent):
-        """Cria uma nova instância representando o pai que sobrevive sem mutação."""
-        parent_generation = getattr(parent, "geracao", 1)
-        new_generation = parent_generation
-        parent_idade = getattr(parent, "idade")
-        nova_idade = parent_idade + 15
-        sexo = getattr(parent, "sexo")
-        risco = getattr(parent, "risco")
-        family_id = getattr(parent, "family_id")
-        altruismo = getattr(parent, "altruismo")
-        doou_comida = getattr(parent, "doou_comida", 0)
-
-        p = Criatura(random.uniform(0, globais.LARGURA),
-                     random.uniform(0, globais.ALTURA),
-                     visao=int(parent.visao),
-                     velocidade=float(parent.velocidade),
-                     cor=getattr(parent, "cor", (0, 100, 255)),
-                     geracao=new_generation,
-                     idade=nova_idade,
-                     sexo=sexo,
-                     risco=risco,
-                     family_id=family_id,
-                     altruismo=altruismo,
-                     doou_comida=doou_comida)
-        # Preserva energia? normalmente resetamos energia para 100 na nova geração
-        p.energia = getattr(parent, "energia", 100)
+        """Apenas retorna o pai atualizando atributos."""
+        parent.idade = getattr(parent, "idade") + 15
+        # parent.x = random.uniform(0, globais.LARGURA)
+        # parent.y = random.uniform(0, globais.ALTURA)
+        parent.energia = 100
         comida_anterior = getattr(parent, "comida_comida", 1)
-        p.comida_comida = 1 if comida_anterior > 1 else 0
-        p.cor = (0, 100, 255) if p.sexo == 'M' else (255, 192, 203)
-        return p
+        parent.comida_comida = 1 if comida_anterior > 1 else 0 # rever isto
+        parent.detectou_parceiro = False
+
+        return parent
+
 
     for parent in geracao_finalizada:
         eaten = getattr(parent, "comida_comida", 0)
@@ -113,9 +95,6 @@ def nova_geracao(geracao_finalizada, geracao_atual):
                                   (0, 100, 255),
                                   1))
 
-    media_ir = sum(c.pesos["ir_para_comida"] for c in novas if hasattr(c, "pesos")) / len(novas)
-    media_rand = sum(c.pesos["aleatoriedade"] for c in novas if hasattr(c, "pesos")) / len(novas)
-    print(f"Médias dos pesos → comida: {media_ir:.2f}, aleatoriedade: {media_rand:.2f}")
 
     return novas
 
